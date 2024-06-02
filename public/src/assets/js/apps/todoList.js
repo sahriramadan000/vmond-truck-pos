@@ -1,4 +1,4 @@
-const globalURL = 'http://controlindo-pos.test/';
+const globalURL = 'https://vtruck-pos.vmond.co.id/';
 var dataRole = [];
 $('.input-search').on('keyup', function() {
   var rex = new RegExp($(this).val(), 'i');
@@ -37,7 +37,7 @@ $(document).on('change', '.inbox-chkbox', function() {
     var isChecked = $(this).is(':checked');
 
     $.ajax({
-        url: globalURL + 'roles/update-permission',
+        url: '/roles/update-permission',
         type: 'POST',
         dataType: 'json',
         headers: {
@@ -77,7 +77,7 @@ $(document).on('change', '.allChecked', function() {
 function updateAllPermission(roleId, status) {
     // Kirim status checkbox ke controller menggunakan Ajax
     $.ajax({
-        url: globalURL + 'roles/update-all-permissions',
+        url: '/roles/update-all-permissions',
         type: 'POST',
         dataType: 'json',
         headers: {
@@ -116,7 +116,7 @@ getDataRole();
 // Fungsi untuk mengambil data peran
 function getDataRole() {
     $.ajax({
-        url: globalURL + 'roles/get-data',
+        url: '/roles/get-data',
         method: 'GET',
         dataType: 'JSON',
         headers: {
@@ -216,7 +216,7 @@ function togglePermissionCheckbox(element) {
     checkbox.prop('checked', isChecked);
 
     $.ajax({
-        url: globalURL + 'roles/update-permission',
+        url: '/roles/update-permission',
         type: 'POST',
         dataType: 'json',
         headers: {

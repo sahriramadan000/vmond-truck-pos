@@ -81,6 +81,16 @@ class TransactionController extends Controller
         ]);
     }
 
+    // Modal Add Cart
+    public function modalAddCart($productId)
+    {
+        $productById = Product::findOrFail($productId);
+
+        return View::make('admin.pos.modal.modal-add-cart')->with([
+            'product'      => $productById,
+        ]);
+    }
+
     // Add Ongkir
     // public function modalAddOngkir()
     // {
@@ -118,16 +128,6 @@ class TransactionController extends Controller
         $user = 'guest';
         Cart::session($user)->remove($id);
         return redirect()->back()->with('success', 'Item deleted successfully!');
-    }
-
-    // Modal
-    public function modalAddCart($productId)
-    {
-        $productById = Product::findOrFail($productId);
-
-        return View::make('pos.modal-add-cart')->with([
-            'product'      => $productById,
-        ]);
     }
 
     // Add to cart with js

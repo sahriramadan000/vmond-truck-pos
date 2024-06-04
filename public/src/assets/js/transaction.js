@@ -325,16 +325,38 @@ function updateDataList(products) {
     });
 }
 
-function ModalAddToCart(productId) {
+function ModalAddToCart(productId, url = '/modal-add-cart') {
     var getTarget = `#modal-add-to-cart-${productId}`;
     $.ajax({
-        url: "{{ route('modal-add-cart', '') }}" +'/'+ productId,
+        url: url + '/' +  productId,
         type: 'GET',
         success: function(data) {
             $('#modalContainer').html(data);
                 $(`${getTarget}`).modal('show');
                 $(`${getTarget}`).on('shown.bs.modal', function () {
-            });
+                    // Fungsi untuk menangani penambahan nilai ketika tombol + ditekan
+                    $(".btn-group .btn:last-child").on("click", function() {
+                        var input = $(this).siblings("input[type='number']");
+                        var value = parseInt(input.val());
+                        input.val(value + 1);
+                    });
+
+                    // Fungsi untuk menangani pengurangan nilai ketika tombol - ditekan
+                    $(".btn-group .btn:first-child").on("click", function() {
+                        var input = $(this).siblings("input[type='number']");
+                        var value = parseInt(input.val());
+                        if (value > 0) {
+                            input.val(value - 1);
+                        }
+                    });
+
+                    // Memastikan nilai input tidak kurang dari 0
+                    $(".qty-add").on("change", function() {
+                        if ($(this).val() < 0) {
+                            $(this).val(0);
+                        }
+                    });
+                });
         },
         error: function(xhr, status, error) {
             console.error('Failed to load Product: ', error);
@@ -552,7 +574,7 @@ function numberFormat(number) {
 }
 
 // Add Product To Cart
-function addToCart(productId, unitId, productDetailId) {
+function addToCart(productId) {
     $.ajax({
         url: "{{ route('add-item') }}",
         type: 'POST',
@@ -562,8 +584,6 @@ function addToCart(productId, unitId, productDetailId) {
         data: {
             "_token": "{{ csrf_token() }}",
             "product_id":productId,
-            "unit_id":unitId,
-            "product_detail_id":productDetailId,
             "quantity":1,
         },
         success: function(response) {

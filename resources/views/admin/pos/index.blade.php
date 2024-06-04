@@ -134,6 +134,15 @@
         .jconfirm.jconfirm-black .jconfirm-box, .jconfirm.jconfirm-dark .jconfirm-box {
             background: #172631 !important;
         }
+        .qty-add,input[type=number]::-webkit-inner-spin-button,
+        .qty-add,input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .qty-add,input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
     <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->
 

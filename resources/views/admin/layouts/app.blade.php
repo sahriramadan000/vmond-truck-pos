@@ -55,7 +55,7 @@
                                         @yield('breadcumbs')
                                     </div>
                                 </div>
-                                <ul class="navbar-nav flex-row ms-auto breadcrumb-action-dropdown">
+                                {{-- <ul class="navbar-nav flex-row ms-auto breadcrumb-action-dropdown">
                                     <li class="nav-item more-dropdown">
                                         <div class="dropdown  custom-dropdown-icon">
                                             <a class="dropdown-toggle btn" href="#" role="button" id="customDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -89,7 +89,7 @@
 
                                         </div>
                                     </li>
-                                </ul>
+                                </ul> --}}
                             </header>
                         </div>
                     </div>

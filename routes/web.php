@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\MaterialController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\OtherSettingController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SupplierController;
@@ -151,6 +152,12 @@ Route::middleware(['auth'])->group(function () {
         Route::put('update/{couponId}', [CouponController::class, 'update'])->name('update');
         Route::get('modal-delete/{couponId}', [CouponController::class, 'getModalDelete'])->name('modal-delete');
         Route::delete('delete/{couponId}', [CouponController::class, 'destroy'])->name('destroy');
+    });
+
+    // Other Setting
+    Route::prefix('other-settings')->name('other-settings.')->group(function () {
+        Route::get('/', [OtherSettingController::class, 'getModal'])->name('modal');
+        Route::put('/{otherSettingId}', [OtherSettingController::class, 'update'])->name('update');
     });
 
     // Transaction

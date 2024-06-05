@@ -66,10 +66,7 @@ class PermissionSeeder extends Seeder
             'coupon-delete',
 
             // Other Setting Permission
-            'other-setting-list',
-            'other-setting-create',
-            'other-setting-edit',
-            'other-setting-delete',
+            'other-setting',
 
             // Customer Permission
             'customer-list',

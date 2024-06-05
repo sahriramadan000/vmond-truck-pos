@@ -26,4 +26,35 @@
 @stack('js-src')
 
 @stack('js')
+<script>
+    // Event Update by Modal
+    $(document).on('click', '#other-setting', function() {
+        var getTarget = $(this).data('bs-target');
 
+        $.get("{{ route('other-settings.modal') }}", function(data) {
+            $('#modalContainerOther').html(data);
+            $(`${getTarget}`).modal('show');
+            $(`${getTarget}`).on('shown.bs.modal', function () {
+                handleInput('layanan');
+
+                $('#layanan').on('keyup', function() {
+                    handleInput('layanan');
+                });
+            });
+
+        });
+    });
+
+    function formatRupiah(angka) {
+        var numberString = angka.toString().replace(/\D/g, '');
+        var ribuan = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return ribuan;
+    }
+
+    function handleInput(inputId) {
+        var inputField = $('#' + inputId);
+        var input = inputField.val().replace(/\D/g, '');
+        var formattedInput = formatRupiah(input);
+        inputField.val(formattedInput);
+    }
+</script>

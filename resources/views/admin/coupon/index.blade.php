@@ -176,19 +176,6 @@
                 $(`${couponId}`).modal('show');
             });
         });
-
-        function formatRupiah(angka) {
-            var numberString = angka.toString().replace(/\D/g, '');
-            var ribuan = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            return ribuan;
-        }
-
-        function handleInput(inputId) {
-            var inputField = $('#' + inputId);
-            var input = inputField.val().replace(/\D/g, '');
-            var formattedInput = formatRupiah(input);
-            inputField.val(formattedInput);
-        }
     });
 </script>
 @endpush

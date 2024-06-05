@@ -97,6 +97,7 @@
 
                     <div class="row layout-top-spacing">
                         @yield('content')
+                        <div id="modalContainerOther"></div>
                     </div>
 
                 </div>

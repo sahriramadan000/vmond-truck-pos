@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AddonController;
 use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\MaterialController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
@@ -89,6 +90,18 @@ Route::middleware(['auth'])->group(function () {
         Route::put('update/{materialId}', [MaterialController::class, 'update'])->name('update');
         Route::get('modal-delete/{materialId}', [MaterialController::class, 'getModalDelete'])->name('modal-delete');
         Route::delete('delete/{materialId}', [MaterialController::class, 'destroy'])->name('destroy');
+    });
+
+    // Customer
+    Route::prefix('customers')->name('customers.')->group(function () {
+        Route::get('/', [CustomerController::class, 'index'])->name('index');
+        Route::get('get-data', [CustomerController::class, 'getCustomers'])->name('get-data');
+        Route::get('modal-add', [CustomerController::class, 'getModalAdd'])->name('modal-add');
+        Route::post('store', [CustomerController::class, 'store'])->name('store');
+        Route::get('modal-edit/{customerId}', [CustomerController::class, 'getModalEdit'])->name('modal-edit');
+        Route::put('update/{customerId}', [CustomerController::class, 'update'])->name('update');
+        Route::get('modal-delete/{customerId}', [CustomerController::class, 'getModalDelete'])->name('modal-delete');
+        Route::delete('delete/{customerId}', [CustomerController::class, 'destroy'])->name('destroy');
     });
 
     // Product

@@ -71,7 +71,11 @@ class PermissionSeeder extends Seeder
             'other-setting-edit',
             'other-setting-delete',
 
-            //
+            // Customer Permission
+            'customer-list',
+            'customer-create',
+            'customer-edit',
+            'customer-delete',
         ];
 
         foreach ($permissions as $permission) {

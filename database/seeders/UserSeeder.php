@@ -20,14 +20,16 @@ class UserSeeder extends Seeder
         try {
             $role = Role::whereName('super-admin')->first();
 
-            // Create new user
-            $user = User::firstOrCreate([
-                'email' => 'superadmin@gmail.com',
-                'fullname' => 'Super Admin',
-                'username' => 'superadmin',
-                'password' => Hash::make('superadmin')
-            ]);
-
+            $user = User::whereUsername('superadmin')->first();
+            if (!$user) {
+                // Create new user
+                $user = User::firstOrCreate([
+                    'email' => 'superadmin@gmail.com',
+                    'fullname' => 'Super Admin',
+                    'username' => 'superadmin',
+                    'password' => Hash::make('superadmin')
+                ]);
+            }
 
             $permissions = Permission::pluck('id')->all();
             $role->syncPermissions($permissions);

@@ -32,28 +32,44 @@
                                 <div class="col-12">
                                     <p class="m-0 p-0">
                                         <i class='bx bxs-component me-1' style="font-size:1.2rem;"></i>
-                                        Stock: <span>{{ $product->current_stock }}</span>
+                                        Stock: <span id="current-stock-{{ $product->id }}">{{ $product->current_stock }}</span>
                                         @if (($product->current_stock ?? 0) <= 0)
-                                            <small class="ms-2 p-1 badge badge-danger text-white" style="font-size: 10px;">Out of Stock</small>
+                                            <small class="ms-2 p-1 badge badge-light-danger" style="font-size: 10px;">Out of Stock</small>
                                         @endif
                                     </p>
                                 </div>
                                 <div class="col-12">
-                                    @if ( $product->is_discount && ($product->price_discount || $product->percent_discount)  && ($product->price_discount > 0  || $product->percent_discount > 0))
+                                    @php
+                                        $priceForPercent = $product->selling_price ?? 0;
+                                        $priceAfterDiscount = $priceForPercent;
+                                        $isDiscounted = false;
+
+                                        if ($product->is_discount) {
+                                            if ($product->price_discount && $product->price_discount > 0) {
+                                                $priceAfterDiscount = $product->price_discount;
+                                                $isDiscounted = true;
+                                            } elseif ($product->percent_discount && $product->percent_discount > 0 && $product->percent_discount <= 100) {
+                                                $discount_price = $priceForPercent * ($product->percent_discount / 100);
+                                                $priceAfterDiscount = $priceForPercent - $discount_price;
+                                                $isDiscounted = true;
+                                            }
+                                        }
+                                    @endphp
+
                                     <p class="m-0 p-0">
                                         <i class='bx bx-dollar-circle me-1' style="font-size:1.2rem;"></i>
-                                        Price: <span>Rp. {{ number_format($product->price_discount, 0, ',', '.') }}</span>
-                                        <small class="ms-2 text-danger">
-                                            <del>Rp. {{ number_format($product->cost_price, 0, ',', '.') }}</del>
-                                        </small>
+                                        Price: <span>Rp. {{ number_format($priceAfterDiscount, 0, ',', '.') }}</span>
+                                        @if($isDiscounted)
+                                            <small class="ms-2 text-danger">
+                                                <del>Rp. {{ number_format($priceForPercent, 0, ',', '.') }}</del>
+                                            </small>
+                                        @endif
                                     </p>
-                                    @else
-                                    <p class="m-0 p-0">
-                                        <i class='bx bx-dollar-circle me-1' style="font-size:1.2rem;"></i>
-                                        Price: <span>Rp. {{ number_format($product->cost_price, 0, ',', '.') }}</span>
-                                    </p>
-                                    @endif
                                 </div>
+                            </div>
+
+                            <div class="mt-3">
+
                             </div>
 
                             <div class="d-flex justify-content-between mt-3">
@@ -62,7 +78,7 @@
                                     <input type="number" name="qty" id="" class="qty-add form-control rounded-0 text-center p-1" value="1" {{ (($product->current_stock ?? 0) <= 0) ? 'disabled' : '' }}>
                                     <button class="btn btn-default text-white" style="background: #0c0f1d !important;" {{ (($product->current_stock ?? 0) <= 0) ? 'disabled' : '' }}>+</button>
                                 </div>
-                                <button class="btn btn-default bg-primary text-white" {{ (($product->current_stock ?? 0) <= 0) ? 'disabled' : '' }}>Add to Cart</button>
+                                <button type="button" class="btn btn-default bg-primary text-white" {{ (($product->current_stock ?? 0) <= 0) ? 'disabled' : '' }} onclick="addToCart({{ $product->id }})">Add to Cart</button>
                             </div>
                         </div>
                     </div>

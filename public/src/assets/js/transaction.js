@@ -243,17 +243,6 @@ function deleteOnholdOrder(key) {
     });
 }
 
-function focusInput(type){
-    if (type == 'barcode') {
-        $('#text-search').focus();
-        $('#text-search').removeClass('search');
-        $('#text-search').addClass('barcode');
-    }else if (type == 'search') {
-        $('#text-search').removeClass('barcode');
-        $('#text-search').addClass('search');
-    }
-}
-
 function ModalSearch(url) {
     var getTarget = `#modal-search-product`;
     $.ajax({
@@ -332,31 +321,43 @@ function ModalAddToCart(productId, url = '/modal-add-cart') {
         type: 'GET',
         success: function(data) {
             $('#modalContainer').html(data);
-                $(`${getTarget}`).modal('show');
-                $(`${getTarget}`).on('shown.bs.modal', function () {
-                    // Fungsi untuk menangani penambahan nilai ketika tombol + ditekan
-                    $(".btn-group .btn:last-child").on("click", function() {
-                        var input = $(this).siblings("input[type='number']");
-                        var value = parseInt(input.val());
+            $(`${getTarget}`).modal('show');
+            $(`${getTarget}`).on('shown.bs.modal', function () {
+                // Fungsi untuk menangani penambahan nilai ketika tombol + ditekan
+                $(".btn-group .btn:last-child").on("click", function() {
+                    var input = $(this).siblings("input[type='number']");
+                    var value = parseInt(input.val());
+                    var currentStock = parseInt($("#current-stock-" + productId).text());
+
+                    if (value < currentStock) {
                         input.val(value + 1);
-                    });
-
-                    // Fungsi untuk menangani pengurangan nilai ketika tombol - ditekan
-                    $(".btn-group .btn:first-child").on("click", function() {
-                        var input = $(this).siblings("input[type='number']");
-                        var value = parseInt(input.val());
-                        if (value > 0) {
-                            input.val(value - 1);
-                        }
-                    });
-
-                    // Memastikan nilai input tidak kurang dari 0
-                    $(".qty-add").on("change", function() {
-                        if ($(this).val() < 0) {
-                            $(this).val(0);
-                        }
-                    });
+                    } else {
+                        alert("Stock tidak cukup");
+                    }
                 });
+
+                // Fungsi untuk menangani pengurangan nilai ketika tombol - ditekan
+                $(".btn-group .btn:first-child").on("click", function() {
+                    var input = $(this).siblings("input[type='number']");
+                    var value = parseInt(input.val());
+                    if (value > 0) {
+                        input.val(value - 1);
+                    }
+                });
+
+                // Memastikan nilai input tidak kurang dari 0
+                $(".qty-add").on("change", function() {
+                    if ($(this).val() < 0) {
+                        $(this).val(0);
+                    } else {
+                        var currentStock = parseInt($("#current-stock-" + productId).text());
+                        if (parseInt($(this).val()) > currentStock) {
+                            alert("Stock tidak cukup");
+                            $(this).val(currentStock);
+                        }
+                    }
+                });
+            });
         },
         error: function(xhr, status, error) {
             console.error('Failed to load Product: ', error);

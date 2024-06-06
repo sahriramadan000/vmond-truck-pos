@@ -84,13 +84,13 @@
             border: 1px solid rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-            margin-top: 12px;
+            margin-top: 0px;
             padding: 8px 0;
-            width: 422px;
+            width: 375px;
         }
         .tt-suggestion {
             font-size: 22px;  /* Set suggestion dropdown font size */
-            padding: 3px 20px;
+            padding: 3px 15px;
         }
         .tt-suggestion:hover {
             cursor: pointer;

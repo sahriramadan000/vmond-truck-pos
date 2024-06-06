@@ -11,7 +11,7 @@
                         <div class="col-12">
                             <div class="input-group" style="justify-content: center !important;">
                                 <button class="btn btn-primary text-white d-flex align-items-center" type="button"><i class='bx bx-search-alt me-0' style="font-size:1.2rem;"></i></button>
-                                <input type="text" class="form-control typeahead tt-query" autocomplete="off" spellcheck="false" placeholder="Search product...">
+                                <input type="text" class="form-control typeahead tt-query" autocomplete="off" spellcheck="false" placeholder="Search product..." autofocus>
                             </div>
                         </div>
                     </div>

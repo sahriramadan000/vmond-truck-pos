@@ -12,7 +12,7 @@
                                         <div class="mb-0">
                                             <div class="input-group">
                                                 {{-- <button class="btn btn-outline-secondary text-dark" type="button" style="font-size:14px;"><i class='bx bx-comment-detail me-0' style="font-size:16px;"></i> <small>Comments</small></button> --}}
-                                                <button class="btn btn-success d-flex align-items-center" type="button" style="font-size:14px;" onclick="ModalAddCoupon('{{ route('modal-add-coupon') }}')" data-bs-target="#modal-add-coupon"><i class='bx bx-tag me-1' style="font-size:1.2rem;"></i> <span id="coupon-info">Coupon</span></button>
+                                                <button class="btn btn-success d-flex align-items-center" type="button" style="font-size:14px;" onclick="ModalAddCoupon('{{ route('modal-add-coupon') }}', '{{ route('update-cart-by-coupon') }}', '{{ csrf_token() }}')" data-bs-target="#modal-add-coupon"><i class='bx bx-tag me-1' style="font-size:1.2rem;"></i> <span id="coupon-info">Coupon</span></button>
                                                 <input type="text" class="form-control" placeholder="" disabled>
                                             </div>
                                         </div>
@@ -72,7 +72,7 @@
                                                         <td style="border-top: 1px solid #060818 !important;">
                                                             <span class="d-flex justify-content-between text-white opacity-75">
                                                                 Customer:
-                                                                <a href="#!" type="button" onclick="ModalAddCustomer('{{ route('modal-add-customer') }}')" class="cursor-pointer" data-bs-target="#modal-add-customer" style="border-bottom: 1px dashed #bfbfbf; font-size:12px;">
+                                                                <a href="#!" type="button" onclick="ModalAddCustomer('{{ route('modal-add-customer') }}', '{{ route('get-data-customers') }}', '{{ csrf_token() }}')" class="cursor-pointer" data-bs-target="#modal-add-customer" style="border-bottom: 1px dashed #bfbfbf; font-size:12px;">
                                                                     <small id="data-customer" style="font-size: 12px;" class="text-white opacity-75">No data</small>
                                                                 </a>
                                                             </span>
@@ -192,7 +192,7 @@
                                                 <button class="btn btn-outline-info text-white d-flex align-items-center" type="button">Favorites</button>
                                                 <button class="btn btn-outline-info text-white d-flex align-items-center" type="button">All Menu</button>
                                                 <input type="text" id="text-search" class="form-control barcode" placeholder="" disabled>
-                                                <button class="btn btn-primary text-white d-flex align-items-center" type="button" onclick="ModalSearch('{{ route('modal-search-product') }}')"><i class='bx bx-search-alt me-0' style="font-size: 1.2rem !important;"></i></button>
+                                                <button class="btn btn-primary text-white d-flex align-items-center" type="button" onclick="ModalSearch('{{ route('modal-search-product') }}', '{{ route('search-product') }}', '{{ csrf_token() }}')"><i class='bx bx-search-alt me-0' style="font-size: 1.2rem !important;"></i></button>
                                             </div>
                                         </div>
                                     </div>

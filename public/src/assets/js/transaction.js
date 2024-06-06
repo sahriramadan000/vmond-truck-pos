@@ -243,23 +243,23 @@ function deleteOnholdOrder(key) {
     });
 }
 
-function ModalSearch(url) {
+function ModalSearch(urlModal, urlGetProduct, token) {
     var getTarget = `#modal-search-product`;
     $.ajax({
-        url: url ,
+        url: urlModal ,
         type: 'GET',
         success: function(data) {
             $('#modalContainer').html(data);
             $(`${getTarget}`).modal('show');
             $(`${getTarget}`).on('shown.bs.modal', function () {
                 $.ajax({
-                    url: "{{ route('search-product') }}",
+                    url: urlGetProduct,
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
-                        "_token": "{{ csrf_token() }}",
+                        "_token": token,
                     },
                     success: function(response) {
                         initTypeahead(response, getTarget);
@@ -365,23 +365,23 @@ function ModalAddToCart(productId, url = '/modal-add-cart') {
     });
 }
 
-function ModalAddCustomer(url) {
+function ModalAddCustomer(urlModal, urlGetDataCust, token) {
     var getTarget = `#modal-add-customer`;
     $.ajax({
-        url: url ,
+        url: urlModal ,
         type: 'GET',
         success: function(data) {
             $('#modalContainer').html(data);
             $(`${getTarget}`).modal('show');
             $(`${getTarget}`).on('shown.bs.modal', function () {
                 $.ajax({
-                    url: "{{ route('get-data-customers') }}",
+                    url: urlGetDataCust,
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
-                        "_token": "{{ csrf_token() }}",
+                        "_token": token,
                     },
                     success: function(response) {
                         initTypeaheadCustomer(response, getTarget);
@@ -428,23 +428,20 @@ function initTypeaheadCustomer(customers, target) {
     });
 }
 
-function ModalAddCoupon(url) {
+function ModalAddCoupon(urlModal, urlUpdateCart, token) {
     var getTarget = `#modal-add-coupon`;
     $.ajax({
-        url: url,
+        url: urlModal,
         type: 'GET',
         success: function(data) {
             $('#modalContainer').html(data);
             $(`${getTarget}`).modal('show');
             $(`${getTarget}`).on('shown.bs.modal', function () {
-                var getValOngkir = $('input[name="ongkir_price"]').val();
-
                 $('#save-coupon').on('click', function() {
                     var getCoupon = $('#select-coupon').val();
                     $('input[name="coupon_id"]').val(getCoupon);
-                    $('input[name="ongkir_price"]').val(getValOngkir);
 
-                    updateCouponInCart(getCoupon,getValOngkir)
+                    updateCouponInCart(getCoupon, urlUpdateCart, token)
                     $(`${getTarget}`).modal('hide'); // Menutup modal
                 })
             });
@@ -456,17 +453,16 @@ function ModalAddCoupon(url) {
 }
 
 // Coupon update
-function updateCouponInCart(couponId,getValOngkir) {
+function updateCouponInCart(couponId, urlUpdateCart, token) {
     $.ajax({
-        url: "{{ route('update-cart-by-coupon') }}",
+        url: urlUpdateCart,
         type: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         data: {
-            "_token": "{{ csrf_token() }}",
-            "coupon_id":couponId,
-            "ongkir_price":getValOngkir,
+            "_token": token,
+            "coupon_id": couponId,
         },
         success: function(response) {
             console.log(response);

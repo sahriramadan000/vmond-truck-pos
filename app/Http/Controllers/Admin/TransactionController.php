@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Coupons;
+use App\Models\Customer;
 use App\Models\OtherSetting;
 use App\Models\Product;
 use App\Models\ProductTag;
@@ -45,10 +46,11 @@ class TransactionController extends Controller
         Cart::session(Auth::user()->id)->getContent();
         $subtotal = Cart::getTotal();
 
-        $coupons = $coupons = Coupons::where('minimum_cart', '<=', $subtotal)
-                    ->where('expired_at', '<=', now())
-                    ->whereRaw('current_usage < limit_usage')
-                    ->get();
+        $coupons = Coupons::where('minimum_cart', '<=', $subtotal)
+                ->where('expired_at', '>=', now())
+                ->whereRaw('current_usage < limit_usage')
+                ->get();
+
         return View::make('admin.pos.modal.modal-add-coupon')->with([
             'coupons'      => $coupons,
         ]);
@@ -307,9 +309,8 @@ class TransactionController extends Controller
     // Update Cart By Coupon
     public function updateCartByCoupon(Request $request)
     {
-        $coupon = Coupon::findOrFail($request->coupon_id);
+        $coupon = Coupons::findOrFail($request->coupon_id);
         $coupon_type = $coupon->type;
-        $ongkir_price = (int) str_replace('.', '', $request->ongkir_price);
         Cart::session(Auth::user()->id)->getContent();
         $tax = OtherSetting::get()->first();
 
@@ -321,13 +322,12 @@ class TransactionController extends Controller
 
         $subtotal = Cart::getTotal();
         $tax = ($subtotal - $coupon_amount) * $tax->pb01 / 100;
-        $total = ($subtotal - $coupon_amount) + $tax + $ongkir_price;
+        $total = ($subtotal - $coupon_amount) + $tax;
         $info = $coupon->name;
 
         return response()->json([
             'success'   => 'Coupon '.$coupon->name.' berhasil ditambahkan!',
             'coupon_type'  => $coupon_type,
-            'ongkir_price'  => $ongkir_price,
             'coupon_amount'  => $coupon_amount,
             'subtotal'  => $subtotal,
             'tax'       => $tax,
@@ -409,8 +409,6 @@ class TransactionController extends Controller
     public function searchProduct(Request $request)
     {
         $products = Product::select(['id', 'name'])->get();
-        // $products = Product::pluck('name');
-
         return response()->json($products);
     }
 }

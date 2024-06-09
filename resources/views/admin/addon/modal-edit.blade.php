@@ -51,6 +51,31 @@
 
                     <div class="col-12 col-md-6">
                         <div class="form-group mb-3">
+                            <label for="choose">Choose</label>
+                            <input type="number" name="choose" class="form-control form-control-sm" placeholder="Ex:1" min="0" max="10" aria-label="choose" id="choose" value="{{ $addon->choose ?? old('choose') }}">
+
+                            @if($errors->has('choose'))
+                                <p class="text-danger">{{ $errors->first('choose') }}</p>
+                            @endif
+                        </div>
+                    </div>
+
+                     <div class="col-12 col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="status_optional">Status Optional</label>
+                            <select class="form-control form-control-sm" name="status_optional" id="status_optional">
+                                <option value="1" {{ (($addon->status_optional ?? old('status_optional')) == true) ? 'selected' : ''  }}>Yes</option>
+                                <option value="0" {{ (($addon->status_optional ?? old('status_optional')) == false) ? 'selected' : ''  }}>No</option>
+                            </select>
+
+                            @if($errors->has('status_optional'))
+                                <p class="text-danger">{{ $errors->first('status_optional') }}</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="form-group mb-3">
                             <label for="parent_id">Parent Addon</label>
                             <select class="form-control form-control-sm" name="parent_id" id="parent_id">
                                 <option selected value="">No Parent Addon</option>

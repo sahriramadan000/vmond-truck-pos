@@ -34,14 +34,14 @@
 											</thead>
 											<tbody id="cart-product">
 												@forelse ($data_items as $key => $item)
-                                                    <tr class="table-cart">
-                                                        <td>
+                                                    <tr class="table-cart text-white">
+                                                        <td class="td-cart">
                                                             <div class="d-flex justify-content-between">
                                                                 <div class="">
-                                                                    <p class="p-0 m-0">
+                                                                    <p class="p-0 m-0 text-white">
                                                                         {{ $item->attributes['product']['name'] }}
                                                                     </p>
-                                                                    <small>Unit: {{ $item->conditions }}</small>
+                                                                    {{-- <small>Unit: {{ $item->conditions }}</small> --}}
                                                                 </div>
 
                                                                 <div class="">
@@ -51,9 +51,10 @@
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td>{{ $item->quantity }}</td>
+                                                        <td class="td-cart">{{ $item->quantity }}</td>
                                                         <input type="hidden" name="qty[]" id="quantityInput" readonly class="min-width-40 flex-grow-0 border border-success text-success fs-4 fw-semibold form-control text-center qty" min="0" style="width: 15%"  value="{{ $item->quantity }}">
-                                                        <td>Rp.{{ number_format($item->attributes['product_unit']['sale_price'], 0, ',', '.') }}</td>
+                                                        {{-- <td>Rp.{{ number_format($item->attributes['product_unit']['sale_price'], 0, ',', '.') }}</td> --}}
+                                                        <td class="td-cart">Rp.10.000</td>
                                                     </tr>
                                                 @empty
                                                     <tr class="table-cart">

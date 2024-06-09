@@ -324,7 +324,7 @@ function ModalAddToCart(productId, url = '/modal-add-cart') {
             $(`${getTarget}`).modal('show');
             $(`${getTarget}`).on('shown.bs.modal', function () {
                 // Fungsi untuk menangani penambahan nilai ketika tombol + ditekan
-                $(".btn-group .btn:last-child").on("click", function() {
+                $("#btn-add").on("click", function() {
                     var input = $(this).siblings("input[type='number']");
                     var value = parseInt(input.val());
                     var currentStock = parseInt($("#current-stock-" + productId).text());
@@ -337,7 +337,7 @@ function ModalAddToCart(productId, url = '/modal-add-cart') {
                 });
 
                 // Fungsi untuk menangani pengurangan nilai ketika tombol - ditekan
-                $(".btn-group .btn:first-child").on("click", function() {
+                $("#btn-min").on("click", function() {
                     var input = $(this).siblings("input[type='number']");
                     var value = parseInt(input.val());
                     if (value > 0) {
@@ -356,6 +356,78 @@ function ModalAddToCart(productId, url = '/modal-add-cart') {
                             $(this).val(currentStock);
                         }
                     }
+                });
+
+                $('.child-checkbox').each(function() {
+                    const isOptional = $(this).data('status-optional');
+                    const maxChoose = $(this).data('choose');
+                    const parentId = $(this).data('parent-id');
+
+                    if (!isOptional) {
+                        // Wajib dipilih
+                        const checkboxes = $(`.child-checkbox[data-parent-id="${parentId}"]`);
+                        const checkedCount = checkboxes.filter(':checked').length;
+
+                        if (checkedCount < maxChoose) {
+                            checkboxes.slice(0, maxChoose).prop('checked', false);
+                        } else {
+                            checkboxes.slice(maxChoose).prop('checked', false);
+                        }
+                    }
+                });
+
+                // Event handler untuk mengontrol checkbox berdasarkan pilihan maksimal
+                $('.child-checkbox').on('change', function() {
+                    const parentId = $(this).data('parent-id');
+                    const maxChoose = $(this).data('choose');
+                    const checkboxes = $(`.child-checkbox[data-parent-id="${parentId}"]`);
+                    const checkedCount = checkboxes.filter(':checked').length;
+
+                    if (checkedCount > maxChoose) {
+                        $(this).prop('checked', false);
+                        alert(`Anda hanya dapat memilih maksimal ${maxChoose} addons.`);
+                    }
+                });
+
+                $('#addToCartButton').on('click', function() {
+                    let isValid = true;
+                    let validationMessage = "";
+
+                    // Loop through each parent addon to check if the selected addons are valid
+                    $('.parent-addons').each(function() {
+                        const parentId = $(this).data('parent-id');
+                        const name = $(this).data('name');
+                        const statusOptional = $(this).data('status-optional');
+                        const maxChoose = $(this).data('choose');
+                        const checkboxes = $(`.child-checkbox[data-parent-id="${parentId}"]`);
+                        const checkedCount = checkboxes.filter(':checked').length;
+
+                        if (!statusOptional && checkedCount !== maxChoose) {
+                            isValid = false;
+                            validationMessage += `Anda harus memilih ${maxChoose} addon ${name}.`;
+                        }
+                    });
+
+                    if (!isValid) {
+                        alert(validationMessage);
+                        return;
+                    }
+
+                    // Ambil semua checkbox yang tercentang
+                    const selectedAddons = $('.child-checkbox:checked').map(function() {
+                        return {
+                            id: $(this).val(),
+                            parentId: $(this).data('parent-id'),
+                            statusOptional: $(this).data('status-optional'),
+                            choose: $(this).data('choose')
+                        };
+                    }).get();
+
+                    const quantity = $('#qty-add').val();
+                    const route = $(this).data('route');
+                    const token = $(this).data('token');
+
+                    addToCart(productId, selectedAddons, quantity, route, token);
                 });
             });
         },
@@ -507,7 +579,6 @@ function ModalAddDiscount(url) {
                     var getValPrice = $('input[name="input-price"]').val();
                     var getValPercent = $('input[name="input-percent"]').val();
                     var getTypeDiscount = $('#select-type-discount').val();
-                    var getValOngkir = $('input[name="ongkir_price"]').val();
 
                     $('input[name="type_discount"]').val(getTypeDiscount);
                     if (getTypeDiscount == 'price') {
@@ -519,42 +590,7 @@ function ModalAddDiscount(url) {
                         $('#discount-price').text(`${getValPercent}%`);
                         $('input[name="discount_percent"]').val(getValPercent);
                     }
-                    $('input[name="ongkir_price"]').val(getValOngkir);
-                    updateDiscountInCart(getTypeDiscount, getValPrice, getValPercent,getValOngkir)
-
-                    $(`${getTarget}`).modal('hide'); // Menutup modal
-                })
-            });
-        },
-        error: function(xhr, status, error) {
-            console.error('Failed to load Product: ', error);
-        }
-    });
-}
-
-function ModalAddOngkir() {
-    var getTarget = `#modal-add-ongkir`;
-    $.ajax({
-        url: "{{ route('modal-add-ongkir') }}" ,
-        type: 'GET',
-        success: function(data) {
-            $('#modalContainer').html(data);
-            $(`${getTarget}`).modal('show');
-            $(`${getTarget}`).on('shown.bs.modal', function () {
-                $('#input-price').on('keyup', function() {
-                    handleInput('input-price');
-                });
-
-                var getValTypeDiscount = $('input[name="type_discount"]').val();
-                var getValDiscountPrice = $('input[name="discount_price"]').val();
-                var getValDiscountPercent = $('input[name="discount_percent"]').val();
-
-                $('#save-ongkir').on('click', function() {
-                    var getValOngkir = $('input[name="input-price"]').val();
-                    $('input[name="ongkir_price"]').val(getValOngkir);
-
-                    $('#ongkir-price').text(`Rp.${formatRupiah(getValOngkir)}`);
-                    updateOngkirInCart(getValOngkir,getValDiscountPrice,getValDiscountPercent,getValTypeDiscount)
+                    updateDiscountInCart(getTypeDiscount, getValPrice, getValPercent)
 
                     $(`${getTarget}`).modal('hide'); // Menutup modal
                 })
@@ -571,17 +607,18 @@ function numberFormat(number) {
 }
 
 // Add Product To Cart
-function addToCart(productId) {
+function addToCart(productId, addons, quantity, url, token) {
     $.ajax({
-        url: "{{ route('add-item') }}",
+        url: url,
         type: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         data: {
-            "_token": "{{ csrf_token() }}",
+            "_token": token,
             "product_id":productId,
-            "quantity":1,
+            "addons":addons,
+            "quantity":quantity,
         },
         success: function(response) {
             console.log(response);
@@ -595,7 +632,6 @@ function addToCart(productId) {
                                                 `<p class="p-0 m-0">`+
                                                     `${cart.name}`+
                                                 `</p>`+
-                                                `<small>Unit: ${cart.conditions}</small>`+
                                             `</div>`+
 
                                             `<div>`+
@@ -607,7 +643,8 @@ function addToCart(productId) {
                                     `</td>`+
                                     `<td>${cart.quantity}</td>`+
                                     `<input type="hidden" name="qty[]" id="quantityInput" class="form-control qty" min="0"  value="${cart.quantity}">`+
-                                    `<td>Rp.${numberFormat(cart.attributes['product_unit']['sale_price'])}</td>`+
+                                    // `<td>Rp.${numberFormat(cart.attributes['product_unit']['sale_price'])}</td>`+
+                                    `<td>Rp.10.000</td>`+
                                 `</tr>`;
 
                 $('#cart-product').append(addList);

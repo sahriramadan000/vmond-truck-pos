@@ -23,6 +23,7 @@
     <link href="{{ asset('src/assets/css/dark/components/tabs.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ asset('src/assets/css/light/apps/contacts.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('src/assets/css/dark/apps/contacts.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('src/assets/css/dark/components/list-group.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('src/assets/css/custom-pos.css') }}" rel="stylesheet" type="text/css" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.css">
@@ -142,6 +143,43 @@
 
         .qty-add,input[type=number] {
             -moz-appearance: textfield;
+        }
+        .body.dark .list-group-item,.parent-addons {
+            border:none !important;
+            background-color: #1b2639 !important;
+            color: #b8b8b8 !important;
+        }
+        .body.dark .list-group-item,.child-addons {
+            border:none !important;
+            background-color: transparent !important;
+        }
+        .addon-section {
+            max-height: 17rem;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(115, 115, 115, 0.42) transparent;
+        }
+        .addon-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .addon-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .addon-section::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .bg-silver {
+            background: #9b9b9bc4 !important
+        }
+        .table-cart .td-cart {
+            border-bottom: 1px solid #000 !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
         }
     </style>
     <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->

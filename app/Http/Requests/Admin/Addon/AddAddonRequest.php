@@ -32,12 +32,14 @@ class AddAddonRequest extends FormRequest
         $request->merge(['status' => filter_var($request->input('status'), FILTER_VALIDATE_BOOLEAN)]);
 
         return [
-            'name'      => 'required|string|max:30|unique:addons,name',
-            'position'  => 'required|integer|min:0',
-            'status'    => 'required|boolean',
-            'parent_id' => 'nullable',
-            'is_price'  => 'nullable|boolean',
-            'price'     => $isPrice ? 'required' : 'nullable',
+            'name'              => 'required|string|max:30|unique:addons,name',
+            'position'          => 'required|integer|min:0',
+            'status'            => 'required|boolean',
+            'parent_id'         => 'nullable',
+            'choose'            => 'nullable',
+            'status_optional'   => 'nullable',
+            'is_price'          => 'nullable|boolean',
+            'price'             => $isPrice ? 'required' : 'nullable',
         ];
     }
 

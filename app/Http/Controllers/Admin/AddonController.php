@@ -61,12 +61,14 @@ class AddonController extends Controller
             $isPrice = $parentId !== null ? true : false;
 
             $addon = new Addon();
-            $addon->name        = $dataAddon['name'];
-            $addon->position    = $dataAddon['position'];
-            $addon->is_price    = $isPrice;
-            $addon->price       = (int) str_replace('.', '',$dataAddon['price']);
-            $addon->parent_id   = $dataAddon['parent_id'];
-            $addon->status      = $dataAddon['status'];
+            $addon->name            = $dataAddon['name'];
+            $addon->position        = $dataAddon['position'];
+            $addon->is_price        = $isPrice;
+            $addon->price           = (int) str_replace('.', '',$dataAddon['price']);
+            $addon->parent_id       = $dataAddon['parent_id'];
+            $addon->choose          = $dataAddon['choose'] ?? null;
+            $addon->status_optional = $dataAddon['status_optional'] ?? null;
+            $addon->status          = $dataAddon['status'];
 
             $addon->save();
 
@@ -113,12 +115,14 @@ class AddonController extends Controller
                 return redirect()->back();
             }
 
-            $addon->name        = $dataAddon['name'];
-            $addon->position    = $dataAddon['position'];
-            $addon->is_price    = $isPrice;
-            $addon->price       = (int) str_replace('.', '',$dataAddon['price']);
-            $addon->parent_id   = $dataAddon['parent_id'];
-            $addon->status      = $dataAddon['status'];
+            $addon->name            = $dataAddon['name'];
+            $addon->position        = $dataAddon['position'];
+            $addon->is_price        = $isPrice;
+            $addon->price           = (int) str_replace('.', '',$dataAddon['price']);
+            $addon->parent_id       = $dataAddon['parent_id'];
+            $addon->choose          = $dataAddon['choose'] ?? null;
+            $addon->status_optional = $dataAddon['status_optional'] ?? null;
+            $addon->status          = $dataAddon['status'];
 
             $addon->save();
 

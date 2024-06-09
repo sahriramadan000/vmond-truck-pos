@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Addon;
 use App\Models\Coupons;
 use App\Models\Customer;
 use App\Models\OtherSetting;
@@ -86,10 +87,39 @@ class TransactionController extends Controller
     // Modal Add Cart
     public function modalAddCart($productId)
     {
-        $productById = Product::findOrFail($productId);
+        $productById = Product::with('addons')->findOrFail($productId);
+        $addons = $productById->addons;
+
+        $parentAddons = $addons->where('parent_id', null);
+        $childAddons = Addon::where('parent_id', '!=', null)->get();
+
+        $structuredAddons = [];
+        foreach ($parentAddons as $parentAddon) {
+            // Tambahkan data parent addon ke array hasil
+            $structuredAddons[$parentAddon->id] = [
+                'addon' => $parentAddon,
+                'children' => []
+            ];
+        }
+
+        foreach ($childAddons as $childAddon) {
+            if (isset($structuredAddons[$childAddon->parent_id])) {
+                $structuredAddons[$childAddon->parent_id]['children'][] = $childAddon;
+            }
+        }
+
+        $formattedAddons = [];
+
+        foreach ($structuredAddons as $structuredAddon) {
+            $formattedAddons[] = [
+                'addon' => $structuredAddon['addon'],
+                'children' => $structuredAddon['children']
+            ];
+        }
 
         return View::make('admin.pos.modal.modal-add-cart')->with([
-            'product'      => $productById,
+            'product'     => $productById,
+            'addons'      => $formattedAddons
         ]);
     }
 
@@ -140,33 +170,27 @@ class TransactionController extends Controller
             }
 
             $product = Product::findOrFail($request->product_id);
-            $productUnit = $product->productUnit()->where('unit_id', $request->unit_id)->get()->first();
-            $productDetail = $product->productDetail()->findOrFail($request->product_detail_id);
-            $unit = Unit::findOrFail($request->unit_id);
+
+            // Ambil addons dari request
+            $addons = $request->addons ?? [];
+
+            // Siapkan atribut detail produk
+            $productDetailAttributes = array(
+                'product' => $product,
+                'addons'  => $addons,
+            );
+
+            $itemIdentifier = md5(json_encode($productDetailAttributes));
 
             $cartContent = Cart::session(Auth::user()->id)->getContent();
 
-            $productDetailAttributes = array(
-                'product' => $product,
-                'product_unit' => $productUnit,
-                'product_detail' => $productDetail,
-                'unit' => $unit,
-            );
-
-            $itemIdentifier = md5(json_encode($productDetail));
-
             // Cek apakah item yang akan ditambahkan sudah ada di keranjang
-            $existingItem = $cartContent->first(function ($item, $key) use ($productDetail, $product, $request) {
+            $existingItem = $cartContent->first(function ($item, $key) use ($productDetailAttributes) {
                 $attributes = $item->attributes;
 
-                // Periksa apakah produk sama dengan produk yang ada dalam keranjang
-                if ($attributes['product']['id'] === $product->id && (int)$attributes['product_unit']['unit_id'] === (int)$request->unit_id && (int)$attributes['product_unit']['product_id'] === (int)$request->product_id) {
-                    // Jika produk sama, tambahkan detail produk baru
-                    $existingProductDetail = $attributes['product_detail'];
-                    $existingProductDetail[] = $productDetail;
-
-                    // Update atribut produk dengan produk yang telah diperbarui
-                    $item->attributes->put('product_detail', $existingProductDetail);
+                // Periksa apakah produk dan addons sama dengan yang ada dalam keranjang
+                if ($attributes['product']['id'] === $productDetailAttributes['product']['id'] &&
+                    $attributes['addons'] == $productDetailAttributes['addons']) {
                     return true;
                 }
 
@@ -180,21 +204,20 @@ class TransactionController extends Controller
                     'attributes' => $existingItem->attributes->toArray(),
                 ]);
             } else {
-                $productDetailAttributes['product_detail'] = [$productDetailAttributes['product_detail']];
+                // Jika item belum ada, tambahkan ke keranjang
                 Cart::session(Auth::user()->id)->add(array(
                     'id' => $itemIdentifier,
                     'name' => $product->name,
-                    'price' => $productUnit->sale_price,
+                    'price' => $product->selling_price,
                     'quantity' => $request->quantity,
                     'attributes' => $productDetailAttributes,
-                    'conditions' => $unit->name,
                     'associatedModel' => Product::class
                 ));
             }
 
-            $other_setting = OtherSetting::select('pb01')->get()->first();
+            $other_setting = OtherSetting::select('pb01')->first();
             $subtotal = (Cart::getTotal() ?? '0');
-            $tax = ((Cart::getTotal() ?? '0') * $other_setting->pb01/100);
+            $tax = ((Cart::getTotal() ?? '0') * $other_setting->pb01 / 100);
             $totalPayment = (Cart::getTotal() ?? '0') + $tax;
 
             return response()->json([
@@ -208,6 +231,7 @@ class TransactionController extends Controller
             return response()->json(['failed' => 'Product '.$product->name.' gagal masuk cart!'. $th->getMessage()], 500);
         }
     }
+
 
     // Void Cart
     public function voidCart()

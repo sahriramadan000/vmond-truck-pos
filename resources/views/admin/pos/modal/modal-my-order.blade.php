@@ -70,13 +70,6 @@
                                             <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Customer:</span> {{ $order_paid->customer->name ?? $order_paid->name }}</p>
                                             <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Date:</span> {{ date('d-m-Y H:i', strtotime($order_paid->created_at)) }}</p>
                                             <div class="btn-group mt-2" role="group" aria-label="Basic example">
-                                                {{-- <button type="button" class="btn py-1 px-2 m-0 btn-success" onclick="detailTransactionPaid()" data-bs-target="#modal-add-customer">
-                                                    <small class="text-white">Open</small>
-                                                </button> --}}
-                                                {{-- <button type="button" class="btn py-1 px-2 m-0 btn-warning">
-                                                    <small class="text-white">Product</small>
-                                                    <i class="bx bxl-twitter"></i>
-                                                </button> --}}
                                                 <a href="{{ route('kasir.dashboard-detail-kasir.show',$order_paid->id) }}" class="btn py-1 px-2 m-0 btn-warning" type="button">
                                                     <small class="text-white">Print</small>
                                                 </a>

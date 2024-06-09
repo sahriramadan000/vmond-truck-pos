@@ -149,7 +149,7 @@
                                                     <div class="modal-body p-0">
                                                         <div class="form-group">
                                                             <h6 class="mb-3">Metode Payment</h6>
-                                                            <select name="metode_pembayaran" id="metodePayment" class="form-control form-control-sm">
+                                                            <select name="payment_method" id="payment_method" class="form-control form-control-sm">
                                                                 <option selected value="Transfer Bank">Transfer Bank</option>
                                                                 <option value="EDC BCA">EDC BCA</option>
                                                                 <option value="EDC BRI">EDC BRI</option>

@@ -21,15 +21,18 @@ class CreateOrdersTable extends Migration
             $table->string('customer_email')->nullable();
             $table->string('customer_phone')->nullable();
             $table->enum('payment_status', ['Paid', 'Unpaid']);
+            $table->string('payment_method');
 
             $table->integer('total_qty')->min(0);
             $table->integer('subtotal')->min(0)->default(0);
-            $table->boolean('is_discount')->default(false);
+            $table->enum('type_discount', ['price', 'percent'])->nullable();
             $table->integer('price_discount')->min(0)->default(0);
             $table->integer('percent_discount')->min(0)->max(100)->default(0);
             $table->integer('pb01')->default(0);
             $table->integer('service')->default(0);
             $table->integer('total')->default(0);
+
+            $table->string('token');
             $table->timestamps();
         });
     }

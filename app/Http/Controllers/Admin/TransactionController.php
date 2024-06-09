@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Addon;
+use App\Models\CacheOnholdControl;
 use App\Models\Coupons;
 use App\Models\Customer;
+use App\Models\Order;
 use App\Models\OtherSetting;
 use App\Models\Product;
 use App\Models\ProductTag;
@@ -15,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
+use Illuminate\Support\Facades\Cache;
 
 class TransactionController extends Controller
 {
@@ -73,10 +76,8 @@ class TransactionController extends Controller
     public function modalMyOrder()
     {
         $today = Carbon::today();
-        // $getOrderPaid = Order::whereStatusPembayaran('Paid')->whereDate('created_at', $today)->orderBy('id', 'desc')->get();
-        $getOrderPaid = [];
-        // $getCacheOnhold = CacheOnholdControl::select(['key','name'])->whereDate('created_at', $today)->orderBy('id', 'desc')->get();
-        $getCacheOnhold = [];
+        $getOrderPaid = Order::wherePaymentStatus('Paid')->whereDate('created_at', $today)->orderBy('id', 'desc')->get();
+        $getCacheOnhold = CacheOnholdControl::select(['key','name'])->whereDate('created_at', $today)->orderBy('id', 'desc')->get();
 
         return View::make('admin.pos.modal.modal-my-order')->with([
             'order_paids'      => $getOrderPaid,
@@ -162,7 +163,6 @@ class TransactionController extends Controller
         return redirect()->back()->with('success', 'Item deleted successfully!');
     }
 
-    // Add to cart with js
     public function addToCart(Request $request){
         try {
             if ($request->product_id == null) {
@@ -173,6 +173,27 @@ class TransactionController extends Controller
 
             // Ambil addons dari request
             $addons = $request->addons ?? [];
+
+            // Perhitungan harga diskon
+            $priceForPercent = $product->selling_price ?? 0;
+            $priceAfterDiscount = $priceForPercent;
+
+            if ($product->is_discount) {
+                if ($product->price_discount && $product->price_discount > 0) {
+                    $priceAfterDiscount = $product->price_discount;
+                } elseif ($product->percent_discount && $product->percent_discount > 0 && $product->percent_discount <= 100) {
+                    $discount_price = $priceForPercent * ($product->percent_discount / 100);
+                    $priceAfterDiscount = $priceForPercent - $discount_price;
+                }
+            }
+
+            // Hitung total harga addons
+            $totalAddonPrice = array_reduce($addons, function($carry, $addon) {
+                return $carry + $addon['price'];
+            }, 0);
+
+            // Tambahkan harga addons ke harga produk
+            $totalPrice = $priceAfterDiscount + $totalAddonPrice;
 
             // Siapkan atribut detail produk
             $productDetailAttributes = array(
@@ -208,7 +229,7 @@ class TransactionController extends Controller
                 Cart::session(Auth::user()->id)->add(array(
                     'id' => $itemIdentifier,
                     'name' => $product->name,
-                    'price' => $product->selling_price,
+                    'price' => $totalPrice,
                     'quantity' => $request->quantity,
                     'attributes' => $productDetailAttributes,
                     'associatedModel' => Product::class
@@ -232,94 +253,11 @@ class TransactionController extends Controller
         }
     }
 
-
     // Void Cart
     public function voidCart()
     {
         Cart::session(Auth::user()->id)->clear();
         return redirect()->back()->with('success', 'Cart berhasil dibersihkan!');
-    }
-
-    public function addToCartBarcode(Request $request){
-        try {
-            if ($request->barcode == null) {
-                return redirect()->back()->with('failed', 'Please Select The Product!');
-            }
-
-            // $product = Product::where('barcode', $request->barcode)
-            //       ->orWhere('sku', $request->sku)
-            //       ->first();
-            $productDetail = ProductDetail::where('barcode', $request->barcode)
-                  ->orWhere('sku', $request->sku)
-                  ->first();
-
-            $product = Product::findOrFail($productDetail->product_id);
-            $unit = Unit::findOrFail($productDetail->unit_id);
-            $productUnit = $product->productUnit()->where('unit_id', $unit->id)->get()->first();
-
-            $cartContent = Cart::session(Auth::user()->id)->getContent();
-
-            $productDetailAttributes = array(
-                'product' => $product,
-                'product_unit' => $productUnit,
-                'product_detail' => $productDetail,
-                'unit' => $unit,
-            );
-
-            $itemIdentifier = md5(json_encode($productDetail));
-
-            // Cek apakah item yang akan ditambahkan sudah ada di keranjang
-            $existingItem = $cartContent->first(function ($item, $key) use ($productDetail, $product, $request) {
-                $attributes = $item->attributes;
-
-                // Periksa apakah produk sama dengan produk yang ada dalam keranjang
-                if ($attributes['product']['id'] === $product->id && (int)$attributes['product_unit']['unit_id'] === (int)$request->unit_id && (int)$attributes['product_unit']['product_id'] === (int)$request->product_id) {
-                    // Jika produk sama, tambahkan detail produk baru
-                    $existingProductDetail = $attributes['product_detail'];
-                    $existingProductDetail[] = $productDetail;
-
-                    // Update atribut produk dengan produk yang telah diperbarui
-                    $item->attributes->put('product_detail', $existingProductDetail);
-                    return true;
-                }
-
-                return false;
-            });
-
-            if ($existingItem !== null) {
-                // Jika item sudah ada, tambahkan jumlahnya
-                Cart::session(Auth::user()->id)->update($existingItem->id, [
-                    'quantity' => $request->quantity,
-                    'attributes' => $existingItem->attributes->toArray(),
-                ]);
-            } else {
-                $productDetailAttributes['product_detail'] = [$productDetailAttributes['product_detail']];
-                Cart::session(Auth::user()->id)->add(array(
-                    'id' => $itemIdentifier,
-                    'name' => $product->name,
-                    'price' => $productUnit->sale_price,
-                    'quantity' => $request->quantity,
-                    'attributes' => $productDetailAttributes,
-                    'conditions' => $unit->name,
-                    'associatedModel' => Product::class
-                ));
-            }
-
-            $other_setting = OtherSetting::select('pb01')->get()->first();
-            $subtotal = (Cart::getTotal() ?? '0');
-            $tax = ((Cart::getTotal() ?? '0') * $other_setting->pb01/100);
-            $totalPayment = (Cart::getTotal() ?? '0') + $tax;
-
-            return response()->json([
-                'success'   => 'Product '.$product->name.' Berhasil masuk cart!',
-                'data'      => Cart::session(Auth::user()->id)->getContent()->toArray(),
-                'tax'       => $tax,
-                'subtotal'  => $subtotal,
-                'total'     => $totalPayment,
-            ], 200);
-        } catch (\Throwable $th) {
-            return response()->json(['failed' => 'Product '.$product->name.' gagal masuk cart!'. $th->getMessage()], 500);
-        }
     }
 
     public function getDataCustomers(Request $request)
@@ -329,7 +267,6 @@ class TransactionController extends Controller
     }
 
     // ====================================================
-
     // Update Cart By Coupon
     public function updateCartByCoupon(Request $request)
     {
@@ -369,7 +306,6 @@ class TransactionController extends Controller
         $discount_price = (int) str_replace('.', '', $request->discount_price);
         $discount_percent = (int) $request->discount_percent;
         $discount_type = $request->discount_type;
-        $ongkir_price = (int) str_replace('.', '', $request->ongkir_price);
 
         Cart::session(Auth::user()->id)->getContent();
         $tax = OtherSetting::get()->first();
@@ -382,7 +318,7 @@ class TransactionController extends Controller
 
         $subtotal = Cart::getTotal();
         $tax = ($subtotal - $discount_amount) * $tax->pb01 / 100;
-        $total = ($subtotal - $discount_amount) + $tax + $ongkir_price;
+        $total = ($subtotal - $discount_amount) + $tax;
 
         return response()->json([
             'success'   => 'Discount berhasil ditambahkan!',
@@ -390,40 +326,6 @@ class TransactionController extends Controller
             'discount_percent'  => $discount_percent,
             'discount_type'  => $discount_type,
             'discount_amount'  => $discount_amount,
-            'ongkir_price'  => $ongkir_price,
-            'subtotal'  => $subtotal,
-            'tax'       => $tax,
-            'total'     => $total,
-        ], 200);
-    }
-
-    // Update Cart By Discount
-    public function updateCartOngkir(Request $request)
-    {
-        $discount_price = (int) str_replace('.', '', $request->discount_price);
-        $discount_percent = (int) $request->discount_percent;
-        $discount_type = $request->discount_type;
-        $ongkir_price = (int) str_replace('.', '', $request->ongkir_price);
-
-        Cart::session(Auth::user()->id)->getContent();
-        $tax = OtherSetting::get()->first();
-
-        if ($discount_type == 'percent') {
-            $discount_amount = Cart::getTotal() * $discount_percent / 100;
-        } else {
-            $discount_amount = $discount_price;
-        }
-
-        $subtotal = Cart::getTotal();
-        $tax = ($subtotal - $discount_amount) * $tax->pb01 / 100;
-        $total = ($subtotal - $discount_amount) + $tax + $ongkir_price;
-
-        return response()->json([
-            'success'   => 'Ongkir berhasil ditambahkan!',
-            'type_discount'  => $discount_type,
-            'discount_percent'  => $discount_percent,
-            'discount_price'  => $discount_price,
-            'ongkir_price'  => $ongkir_price,
             'subtotal'  => $subtotal,
             'tax'       => $tax,
             'total'     => $total,
@@ -435,4 +337,108 @@ class TransactionController extends Controller
         $products = Product::select(['id', 'name'])->get();
         return response()->json($products);
     }
+
+     // On Hold
+     public function onHoldOrder(Request $request)
+     {
+         try {
+
+             // Get All Session Cart
+             $session_cart = \Cart::session(Auth::user()->id)->getContent()->toArray();
+
+             // Create unique key
+             $uniqueKey = uniqid();
+
+             // Simpan data session cart ke Cache File dengan uniqeuKey
+             Cache::put('onHoldCart:user:' . Auth::user()->id . ':' . $uniqueKey, $session_cart, 86400);
+
+             $dataCache = CacheOnholdControl::create([
+                 'key' => $uniqueKey,
+                 'name' => ($request->name ? $request->name : 'No Name')
+             ]);
+
+             // Clear session cart
+             if ($dataCache) {
+                 \Cart::session(Auth::user()->id)->clear();
+             }
+
+             return response()->json([
+                 'code'      => 200,
+                 'message'   => 'Order telah berhasil disimpan.',
+             ], 200);
+
+         } catch (\Throwable $th) {
+             // Tangani kesalahan jika terjadi
+             return response()->json(['error' => $th->getMessage()], 500);
+         }
+     }
+
+     public function openOnholdOrder(Request $request)
+     {
+         try {
+             $other_setting = OtherSetting::get()->first();
+
+             \Cart::session(Auth::user()->id)->clear();
+             $keyCache = 'onHoldCart:user:' . Auth::user()->id . ':' . $request->key;
+
+             if (Cache::has($keyCache)) {
+                 // Get Cache by key
+                 $getCache = Cache::get($keyCache);
+
+                 // Add data to cart
+                 foreach ($getCache as $cache) {
+                     \Cart::session(Auth::user()->id)->add([
+                         'id' => $cache['id'],
+                         'name' => $cache['name'],
+                         'price' => $cache['price'],
+                         'quantity' => $cache['quantity'],
+                         'attributes' => $cache['attributes'],
+                         'conditions' => $cache['conditions'],
+                     ]);
+                 }
+
+                 // Delete Cache after add to cart
+                 Cache::forget($keyCache);
+                 CacheOnholdControl::where('key',$request->key)->delete();
+
+                 // Set return data
+                 $dataCart = \Cart::session(Auth::user()->id)->getContent();
+                 $subtotal = \Cart::getTotal();
+                 $tax = $subtotal * $other_setting->pb01 / 100;
+                 $total_price = $subtotal  + $tax;
+
+
+                 return response()->json([
+                     'code'     => 200,
+                     'message'  => 'Open onhold Berhasil.',
+                     'data'     => $dataCart,
+                     'subtotal' => $subtotal,
+                     'tax'      => $tax,
+                     'total'    => $total_price,
+                 ], 200);
+             } else {
+                 return null;
+             }
+         } catch (\Throwable $th) {
+             return response()->json(['error' => $th->getMessage()], 500);
+         }
+     }
+
+     public function deleteOnholdOrder(Request $request)
+     {
+         try {
+             $keyCache = 'onHoldCart:user:' . Auth::user()->id . ':' . $request->key;
+
+             // Delete Cache after add to cart
+             CacheOnholdControl::where('key',$request->key)->delete();
+             Cache::forget($keyCache);
+
+             return response()->json([
+                 'code'     => 200,
+                 'message'  => 'Delete onhold Berhasil.',
+             ], 200);
+         } catch (\Throwable $th) {
+             return response()->json(['error' => $th->getMessage()], 500);
+         }
+     }
 }

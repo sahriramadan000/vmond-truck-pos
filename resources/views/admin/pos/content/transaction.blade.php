@@ -39,7 +39,7 @@
                                                             <div class="d-flex justify-content-between">
                                                                 <div class="">
                                                                     <p class="p-0 m-0 text-white">
-                                                                        {{ $item->attributes['product']['name'] }}
+                                                                        {{ $item->name }}
                                                                     </p>
                                                                     {{-- <small>Unit: {{ $item->conditions }}</small> --}}
                                                                 </div>
@@ -53,8 +53,7 @@
                                                         </td>
                                                         <td class="td-cart">{{ $item->quantity }}</td>
                                                         <input type="hidden" name="qty[]" id="quantityInput" readonly class="min-width-40 flex-grow-0 border border-success text-success fs-4 fw-semibold form-control text-center qty" min="0" style="width: 15%"  value="{{ $item->quantity }}">
-                                                        {{-- <td>Rp.{{ number_format($item->attributes['product_unit']['sale_price'], 0, ',', '.') }}</td> --}}
-                                                        <td class="td-cart">Rp.10.000</td>
+                                                        <td class="td-cart">Rp.{{ number_format($item->price, 0, ',', '.') }}</td>
                                                     </tr>
                                                 @empty
                                                     <tr class="table-cart">
@@ -93,14 +92,13 @@
                                                         <td style="border-top: 1px solid #060818 !important; border-left: 1px solid #060818 !important;" colspan="2">
                                                             <div class="d-flex justify-content-between">
                                                                 <span style="font-size: 12px;" class="text-white opacity-75">Discount<small id="type-discount"></small></span>
-                                                                <a href="#!" type="button" onclick="ModalAddDiscount('{{ route('modal-add-discount') }}')" class="cursor-pointer" data-bs-target="#modal-add-discount" style="border-bottom: 1px dashed #bfbfbf;font-size:14px;">
+                                                                <a href="#!" type="button" onclick="ModalAddDiscount('{{ route('modal-add-discount') }}', '{{ route('update-cart-by-discount') }}', '{{ csrf_token() }}')" class="cursor-pointer" data-bs-target="#modal-add-discount" style="border-bottom: 1px dashed #bfbfbf;font-size:14px;">
                                                                     <small id="discount-price" class="text-white opacity-75">Rp.0</small>
                                                                 </a>
                                                             </div>
                                                             <input type="hidden" name="type_discount" value="">
                                                             <input type="hidden" name="discount_price" value="">
                                                             <input type="hidden" name="discount_percent" value="">
-                                                            <input type="hidden" name="ongkir_price" value="">
                                                         </td>
                                                     </tr>
 
@@ -116,28 +114,23 @@
                                             </table>
                                         </div>
                                         <div class="col-12">
-                                            <div class="btn-group w-100 p-3 pt-0" role="group" aria-label="Basic example">
+                                            <div class="btn-group w-100 p-3 pt-0" role="group" aria-label="Grouping Button">
                                                 <button type="button" class="btn btn-lg btn-success fw-bold w-25 p-3" data-bs-toggle="modal" data-bs-target="#modalPayment">
                                                     <h6 class="mb-0 text-white">
                                                         PAY
                                                     </h6>
                                                 </button>
-                                                <button type="button" class="btn btn-lg btn-primary fw-bold w-25 p-3" onclick="onHoldOrder()">
+                                                <button type="button" class="btn btn-lg btn-primary fw-bold w-25 p-3" onclick="onHoldOrder('{{ route('on-hold-order') }}', '{{ csrf_token() }}')">
                                                     <h6 class="mb-0 text-white">
                                                         ON HOLD
                                                     </h6>
                                                 </button>
-                                                <button type="button" class="btn btn-lg btn-white fw-bold w-25 p-3" onclick="ModalAddDiscount('{{ route('modal-add-discount') }}')" data-bs-target="#modal-add-discount">
+                                                <button type="button" class="btn btn-lg btn-white fw-bold w-25 p-3" onclick="ModalAddDiscount('{{ route('modal-add-discount') }}', '{{ route('update-cart-by-discount') }}', '{{ csrf_token() }}')" data-bs-target="#modal-add-discount">
                                                     <h6 class="mb-0 text-dark">
                                                         DISCOUNT
                                                     </h6>
                                                 </button>
-                                                {{-- <button type="button" class="btn btn-lg btn-warning fw-bold w-25 p-3" onclick="ModalAddOngkir()" data-bs-target="#modal-add-discount">
-                                                    <h6 class="mb-0 text-white">
-                                                        ONGKIR
-                                                    </h6>
-                                                </button> --}}
-                                                <button type="button" class="btn btn-lg btn-danger fw-bold w-25 p-3" onclick="voidCart()">
+                                                <button type="button" class="btn btn-lg btn-danger fw-bold w-25 p-3" onclick="voidCart('{{ route('void-cart') }}', '{{ csrf_token() }}')">
                                                     <h6 class="mb-0 text-white">
                                                         VOID
                                                     </h6>

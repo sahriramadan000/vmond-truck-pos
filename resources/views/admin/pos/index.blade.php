@@ -177,7 +177,7 @@
             background: #9b9b9bc4 !important
         }
         .table-cart .td-cart {
-            border-bottom: 1px solid #000 !important;
+            border-bottom: 1px solid #060818 !important;
             padding-top: 10px !important;
             padding-bottom: 10px !important;
         }

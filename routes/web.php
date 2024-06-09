@@ -180,12 +180,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/update-cart-by-coupon',[TransactionController::class, 'updateCartByCoupon'])->name('update-cart-by-coupon');
     Route::post('/void-cart',[TransactionController::class, 'voidCart'])->name('void-cart');
     Route::get('/delete-item/{id}',[TransactionController::class, 'deleteItem'])->name('delete-item');
+    Route::post('/on-hold-order',[TransactionController::class,'onHoldOrder'])->name('on-hold-order');
+    Route::post('/open-on-hold-order',[TransactionController::class,'openOnholdOrder'])->name('open-on-hold-order');
+    Route::post('/delete-on-hold-order',[TransactionController::class,'deleteOnholdOrder'])->name('delete-on-hold-order');
 
     // Checkout
     Route::post('/checkout/{token}',[OrderController::class,'checkout'])->name('checkout-order');
-    Route::post('/on-hold-order',[OrderController::class,'onHoldOrder'])->name('on-hold-order');
-    Route::post('/open-on-hold-order',[OrderController::class,'openOnholdOrder'])->name('open-on-hold-order');
-    Route::post('/delete-on-hold-order',[OrderController::class,'deleteOnholdOrder'])->name('delete-on-hold-order');
     Route::post('/checkout/checkout-waiters/{token}',[OrderController::class,'checkoutWaiters'])->name('checkout-waiters');
 
 });

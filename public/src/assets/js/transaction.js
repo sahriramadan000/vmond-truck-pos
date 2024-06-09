@@ -102,7 +102,7 @@ function renderProducts(products) {
     }
 }
 
-function onHoldOrder() {
+function onHoldOrder(url, token) {
     $.confirm({
         title: `Onhold Order`,
         content: '' +
@@ -125,13 +125,13 @@ function onHoldOrder() {
                 action: function () {
                     var name = this.$content.find('.name').val();
                     $.ajax({
-                        url: "{{ route('on-hold-order') }}",
+                        url: url,
                         type: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
                         data: {
-                            "_token": "{{ csrf_token() }}",
+                            "_token": token,
                             "name" : name
                         },
                         success: function(response) {
@@ -171,29 +171,28 @@ function onHoldOrder() {
     });
 }
 
-function openOnholdOrder(key) {
+function openOnholdOrder(url, key, token) {
     $.ajax({
-        url: "{{ route('open-on-hold-order') }}",
+        url: url,
         type: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         data: {
-            "_token": "{{ csrf_token() }}",
+            "_token": token,
             "key": key,
         },
         success: function(response) {
             console.log(response);
             $('#cart-product').empty();
             $.each(response.data, function(index, cart) {
-                var addList = `<tr class="table-cart">`+
-                                    `<td>`+
+                var addList = `<tr class="table-cart text-white">`+
+                                    `<td class="td-cart">`+
                                         `<div class="d-flex justify-content-between">`+
                                             `<div class="">`+
-                                                `<p class="p-0 m-0">`+
+                                                `<p class="p-0 m-0 text-white">`+
                                                     `${cart.name}`+
                                                 `</p>`+
-                                                `<small>Unit: ${cart.conditions}</small>`+
                                             `</div>`+
 
                                             `<div>`+
@@ -203,9 +202,9 @@ function openOnholdOrder(key) {
                                             `</div>`+
                                         `</div>`+
                                     `</td>`+
-                                    `<td>${cart.quantity}</td>`+
+                                    `<td class="td-cart">${cart.quantity}</td>`+
                                     `<input type="hidden" name="qty[]" id="quantityInput" class="form-control qty" min="0"  value="${cart.quantity}">`+
-                                    `<td>Rp.${numberFormat(cart.attributes['product_unit']['sale_price'])}</td>`+
+                                    `<td class="td-cart">Rp.${numberFormat(cart.price)}</td>`+
                                 `</tr>`;
 
                 $('#cart-product').append(addList);
@@ -222,15 +221,15 @@ function openOnholdOrder(key) {
     });
 }
 
-function deleteOnholdOrder(key) {
+function deleteOnholdOrder(url, key, token) {
     $.ajax({
-        url: "{{ route('delete-on-hold-order') }}",
+        url: url,
         type: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         data: {
-            "_token": "{{ csrf_token() }}",
+            "_token": token,
             "key": key,
         },
         success: function(response) {
@@ -419,7 +418,8 @@ function ModalAddToCart(productId, url = '/modal-add-cart') {
                             id: $(this).val(),
                             parentId: $(this).data('parent-id'),
                             statusOptional: $(this).data('status-optional'),
-                            choose: $(this).data('choose')
+                            choose: $(this).data('choose'),
+                            price: $(this).data('price')
                         };
                     }).get();
 
@@ -550,7 +550,7 @@ function updateCouponInCart(couponId, urlUpdateCart, token) {
 }
 
 
-function ModalAddDiscount(url) {
+function ModalAddDiscount(url, urlUpdate, tokenUpdate) {
     var getTarget = `#modal-add-discount`;
     $.ajax({
         url: url ,
@@ -590,7 +590,7 @@ function ModalAddDiscount(url) {
                         $('#discount-price').text(`${getValPercent}%`);
                         $('input[name="discount_percent"]').val(getValPercent);
                     }
-                    updateDiscountInCart(getTypeDiscount, getValPrice, getValPercent)
+                    updateDiscountInCart(getTypeDiscount, getValPrice, getValPercent, urlUpdate, tokenUpdate)
 
                     $(`${getTarget}`).modal('hide'); // Menutup modal
                 })
@@ -623,13 +623,13 @@ function addToCart(productId, addons, quantity, url, token) {
         success: function(response) {
             console.log(response);
             $('#cart-product').empty();
-
+            console.log(response);
             $.each(response.data, function(index, cart) {
-                var addList = `<tr class="table-cart">`+
-                                    `<td>`+
+                var addList = `<tr class="table-cart text-white">`+
+                                    `<td class="td-cart">`+
                                         `<div class="d-flex justify-content-between">`+
                                             `<div class="">`+
-                                                `<p class="p-0 m-0">`+
+                                                `<p class="p-0 m-0 text-white">`+
                                                     `${cart.name}`+
                                                 `</p>`+
                                             `</div>`+
@@ -641,10 +641,9 @@ function addToCart(productId, addons, quantity, url, token) {
                                             `</div>`+
                                         `</div>`+
                                     `</td>`+
-                                    `<td>${cart.quantity}</td>`+
+                                    `<td class="td-cart">${cart.quantity}</td>`+
                                     `<input type="hidden" name="qty[]" id="quantityInput" class="form-control qty" min="0"  value="${cart.quantity}">`+
-                                    // `<td>Rp.${numberFormat(cart.attributes['product_unit']['sale_price'])}</td>`+
-                                    `<td>Rp.10.000</td>`+
+                                    `<td class="td-cart">Rp.${numberFormat(cart.price)}</td>`+
                                 `</tr>`;
 
                 $('#cart-product').append(addList);
@@ -661,7 +660,7 @@ function addToCart(productId, addons, quantity, url, token) {
 }
 
 // Void cart
-function voidCart() {
+function voidCart(url, token) {
     $.confirm({
         title: `Void Cart?`,
         content: `Are you sure want to void cart`,
@@ -677,13 +676,13 @@ function voidCart() {
                 btnClass: 'btn-primary',
                 action: function () {
                     $.ajax({
-                        url: "{{ route('void-cart') }}",
+                        url: url,
                         type: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
                         data: {
-                            "_token": "{{ csrf_token() }}",
+                            "_token": token,
                         },
                         success: function(response) {
                             $('#cart-product').empty();
@@ -694,6 +693,21 @@ function voidCart() {
 
                             $('#cart-product').append(addList);
 
+                            $('#subtotal-cart').text(`Rp.0`);
+                            $('#tax-cart').text(`Rp.0`);
+                            $('#tax-cart').text(`Rp.0`);
+                            $('#total-cart').text(`Rp.0`);
+
+                            // Discount
+                            $('#type-discount').text("");
+                            $('#discount-price').text(`Rp.0`);
+                            $('input[name="discount_price"]').val(0);
+                            $('input[name="discount_percent"]').val(0);
+                            $('input[name="ongkir_price"]').val(0);
+
+                            // Customer
+                            $('input[name="customer_id"]').val(null);
+                            $('#data-customer').text('No data');
                         },
                         error: function(xhr, status, error) {
                             console.error('Failed to load Product: ', error);
@@ -808,49 +822,20 @@ function extractNumericValue(id) {
 }
 
 // Discount update
-function updateDiscountInCart(typeDiscount, discountPrice, discountPercent,ongkirPrice) {
+function updateDiscountInCart(typeDiscount, discountPrice, discountPercent, url, token) {
     $.ajax({
-        url: "{{ route('update-cart-by-discount') }}",
+        url: url,
         type: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         data: {
-            "_token": "{{ csrf_token() }}",
+            "_token": token,
             "discount_price":discountPrice,
             "discount_percent":discountPercent,
             "discount_type":typeDiscount,
-            "ongkir_price":ongkirPrice,
         },
         success: function(response) {
-            console.log(response);
-            $('#subtotal-cart').text(`Rp.${formatRupiah(response.subtotal)}`)
-            $('#tax-cart').text(`Rp.${formatRupiah(response.tax)}`)
-            $('#total-cart').text(`Rp.${formatRupiah(response.total)}`)
-        },
-        error: function(xhr, status, error) {
-            console.error('Failed to load Product: ', error);
-        }
-    });
-}
-
-// Ongkir update
-function updateOngkirInCart(ongkirPrice,discountPrice,discountPercent,discountType) {
-    $.ajax({
-        url: "{{ route('update-cart-ongkir') }}",
-        type: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        data: {
-            "_token": "{{ csrf_token() }}",
-            "ongkir_price":ongkirPrice,
-            "discount_price":discountPrice,
-            "discount_percent":discountPercent,
-            "discount_type":discountType,
-        },
-        success: function(response) {
-            console.log(response);
             $('#subtotal-cart').text(`Rp.${formatRupiah(response.subtotal)}`)
             $('#tax-cart').text(`Rp.${formatRupiah(response.tax)}`)
             $('#total-cart').text(`Rp.${formatRupiah(response.total)}`)

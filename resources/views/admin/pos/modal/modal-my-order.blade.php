@@ -36,10 +36,10 @@
                                         </div>
                                         <div class="">
                                             <div class="btn-group" role="group" aria-label="Basic example">
-                                                <button type="button" class="btn py-1 px-2 m-0 btn-success" onclick="openOnholdOrder('{{ $onhold->key }}')">
+                                                <button type="button" class="btn py-1 px-2 m-0 btn-success" onclick="openOnholdOrder('{{ route('open-on-hold-order') }}','{{ $onhold->key }}', '{{ csrf_token() }}')">
                                                     <small class="text-white">Open</small>
                                                 </button>
-                                                <button type="button" class="btn py-1 px-2 m-0 btn-danger" onclick="deleteOnholdOrder('{{ $onhold->key }}')">
+                                                <button type="button" class="btn py-1 px-2 m-0 btn-danger" onclick="deleteOnholdOrder('{{ route('delete-on-hold-order') }}', '{{ $onhold->key }}', '{{ csrf_token() }}')">
                                                     <small class="text-white">Delete</small>
                                                 </button>
                                             </div>
@@ -64,7 +64,6 @@
                                             <p class="mb-1" style="font-size:14px;"><span class="fw-medium">No Invoice:</span> {{ $order_paid->invoice_no ?? '-' }}</p>
                                             <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Cashier:</span> {{ $order_paid->user->name ?? '-' }}</p>
                                             <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Metode Pembayaran:</span> {{ $order_paid->metode_pembayaran ?? '-' }}</p>
-                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Ongkir:</span> Rp.{{ number_format($order_paid->shipping, 0 ,',' ,'.') ?? 0 }}</p>
                                             <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Total:</span> Rp.{{ number_format($order_paid->total_price, 0, ',', '.' ) ?? '-' }}</p>
                                         </div>
                                         <div class="">

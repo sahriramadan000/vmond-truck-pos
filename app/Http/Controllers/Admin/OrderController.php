@@ -41,14 +41,14 @@ class OrderController extends Controller
             }
 
             if ($other_setting->layanan != 0) {
-                $biaya_layanan = Cart::getTotal() + (int) str_replace('.', '', $other_setting->layanan);
-                $total_price = (Cart::getTotal()) + $biaya_layanan;
+                $biaya_layanan = Cart::getTotal() + $service;
+                $total_price = $biaya_layanan;
             }else{
                 $total_price = (Cart::getTotal() ?? '0');
             }
 
             if ($other_setting->pb01 != 0) {
-                $biaya_pb01 = $total_price * $other_setting->pb01/100;
+                $biaya_pb01 = $total_price * ($other_setting->pb01/100);
                 $pb01 = $biaya_pb01;
                 $total_price = $total_price + $biaya_pb01;
             }else{
@@ -172,6 +172,10 @@ class OrderController extends Controller
                 if ((int)$product->current_stock < $totalQty) {
                     return redirect()->back()->with(['failed' => 'Stock product ' . $product->name . ' kurang - Stock tersisa ' . $product->current_stock]);
                 }
+
+                // Kurangi stok produk
+                $product->current_stock = (int) $product->current_stock - (int) $totalQty;
+                $product->save();
             }
 
             // Simpan produk dan addons ke tabel order_products
@@ -197,11 +201,6 @@ class OrderController extends Controller
                         'price'            => $getAddon->price,
                     ]);
                 }
-
-                $product = Product::findOrFail($product['id']);
-                // Kurangi stok produk
-                $product->current_stock -= $stockCheck[$product->id];
-                $product->save();
             }
 
             // Jika semua operasi berhasil, lakukan commit

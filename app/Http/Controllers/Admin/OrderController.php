@@ -49,6 +49,7 @@ class OrderController extends Controller
 
             if ($other_setting->pb01 != 0) {
                 $biaya_pb01 = $total_price * $other_setting->pb01/100;
+                $pb01 = $biaya_pb01;
                 $total_price = $total_price + $biaya_pb01;
             }else{
                 $total_price = ($total_price ?? '0');

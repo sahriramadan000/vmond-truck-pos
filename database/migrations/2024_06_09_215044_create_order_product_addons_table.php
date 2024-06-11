@@ -17,6 +17,9 @@ class CreateOrderProductAddonsTable extends Migration
             $table->id();
             $table->string('name');
             $table->float('price')->nullable();
+
+            $table->bigInteger("order_product_id")->unsigned()->nullable();
+            $table->foreign("order_product_id")->references("id")->on("order_products")->onDelete('cascade');
             $table->timestamps();
         });
     }

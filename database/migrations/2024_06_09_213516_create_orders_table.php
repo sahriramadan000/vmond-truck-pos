@@ -16,8 +16,8 @@ class CreateOrdersTable extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('no_invoice')->unique();
-            $table->string('cashier_name')->default('No Name');
-            $table->string('customer_name')->default('No Name');
+            $table->string('cashier_name')->default('No Name')->nullable();
+            $table->string('customer_name')->default('No Name')->nullable();
             $table->string('customer_email')->nullable();
             $table->string('customer_phone')->nullable();
             $table->enum('payment_status', ['Paid', 'Unpaid']);

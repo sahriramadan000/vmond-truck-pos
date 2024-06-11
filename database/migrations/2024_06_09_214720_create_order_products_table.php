@@ -22,6 +22,9 @@ class CreateOrderProductsTable extends Migration
             $table->integer('percent_discount')->default(0);
             $table->float('price_discount')->default(0);
             $table->integer('qty')->min(0);
+
+            $table->bigInteger("order_id")->unsigned()->nullable();
+            $table->foreign("order_id")->references("id")->on("orders")->onDelete('cascade');
             $table->timestamps();
         });
     }

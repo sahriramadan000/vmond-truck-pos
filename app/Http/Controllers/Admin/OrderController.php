@@ -3,39 +3,45 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Addon;
 use App\Models\Coupons;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderCoupon;
+use App\Models\OrderProduct;
+use App\Models\OrderProductAddon;
 use App\Models\OtherSetting;
+use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
     public function checkout(Request $request, $token)
     {
+        DB::beginTransaction();
         try {
             $session_cart = Cart::session(Auth::user()->id)->getContent();
             $other_setting = OtherSetting::get()->first();
             $checkToken = Order::where('token',$token)->where('payment_status', 'Paid')->get();
-            $service = (Cart::getTotal() ?? '0') * $other_setting->layanan/100;
-            $pb01 = (Cart::getTotal()  ?? '0')  * $other_setting->pb01/100;
+            $service = (int) str_replace('.', '', $other_setting->layanan);
+            $pb01 = $other_setting->pb01/100;
             $total_price = 0;
             $customer = null;
 
             if ($request->customer_id) {
-                $customer = Customer::whereId($request->customer_id)->get();
+                $customer = Customer::whereId($request->customer_id)->get()->first();
             }
-
 
             if (count($checkToken) != 0) {
                 return redirect()->back()->with(['failed' => 'Tidak dapat mengulang transaksi!']);
             }
 
             if ($other_setting->layanan != 0) {
-                $biaya_layanan = Cart::getTotal() * $other_setting->layanan/100;
+                $biaya_layanan = Cart::getTotal() + (int) str_replace('.', '', $other_setting->layanan);
                 $total_price = (Cart::getTotal()) + $biaya_layanan;
             }else{
                 $total_price = (Cart::getTotal() ?? '0');
@@ -59,26 +65,26 @@ class OrderController extends Controller
             }
 
             $subtotal = Cart::getTotal();
-            $tax_by_discount = ($subtotal - $discount_amount) * $other_setting->pb01 / 100;
-            $tax_by_discount = ($subtotal - $discount_amount) * $other_setting->pb01 / 100;
-            $total_price_by_discount = ($subtotal - $discount_amount) + $tax_by_discount;
+            $service_by_discount = ($subtotal - $discount_amount) + (int) str_replace('.', '', $other_setting->layanan);
+            $tax_by_discount = $service_by_discount * $other_setting->pb01 / 100;
+            $total_price_by_discount = $service_by_discount + $tax_by_discount;
             // ===================By Discount====================
 
             // =================Create Data Order================
             $order = Order::create([
                 'no_invoice'        => $this->generateInvoice(),
-                'cashier_name'      => auth()->user()->name,
+                'cashier_name'      => Auth::user()->fullname,
                 'customer_name'     => $customer->name ?? null,
                 'customer_email'    => $customer->email ?? null,
                 'customer_phone'    => $customer->phone ?? null,
-                'status_pembayaran' => 'Paid',
-                'payment_method'    => $request->metode_pembayaran,
+                'payment_status'    => 'Paid',
+                'payment_method'    => $request->payment_method,
 
                 'total_qty'         => array_sum($request->qty),
-                'sub_total'         => $subtotal,
+                'subtotal'         => $subtotal,
                 'type_discount'     => ($request->type_discount ? $request->type_discount : null) ,
-                'discount_price'    => $getDiscountPrice,
-                'discount_percent'  => $getDiscountPercent,
+                'price_discount'    => $getDiscountPrice,
+                'percent_discount'  => $getDiscountPercent,
                 'service'           => $service,
                 'pb01'              => ($request->type_discount ? $tax_by_discount : $pb01),
                 'total'             => ($request->type_discount ? $total_price_by_discount : $total_price),
@@ -123,85 +129,121 @@ class OrderController extends Controller
             // =================Order Coupon=====================
 
             // ==================================================================================================
-            // Order Detail Product
-            // $orderDetails = []; // Array untuk menyimpan detail produk yang telah dimasukkan ke dalam pesanan
+            // Order Product
+            $orderProducts = []; // Array untuk menyimpan detail produk yang telah dimasukkan ke dalam pesanan
+            $stockCheck = []; // Array untuk menyimpan jumlah total produk berdasarkan ID produk
 
-            // foreach ($session_cart as $key => $cart) {
-            //     foreach ($cart->attributes['product'] as $key2 => $detail) {
-            //         $order_product_id = $detail->id;
+            foreach ($session_cart as $cart) {
+                $productId = $cart->attributes['product']['id'];
+                $addonIds = array_map(function($addon) {
+                    return $addon['id'];
+                }, $cart->attributes['addons']);
 
-            //         // Periksa apakah detail produk sudah dimasukkan sebelumnya
-            //         if (isset($orderDetails[$order_product_id])) {
-            //             // Jika sudah dimasukkan, tambahkan jumlahnya
-            //             $orderDetails[$order_product_id]['quantity_product'] += 1;
-            //         } else {
-            //             // Jika belum dimasukkan, tambahkan detail produk baru ke dalam pesanan
-            //             $orderDetails[$order_product_id] = [
-            //                 'product_id'                    => $cart->attributes['product']['id'],
-            //                 'product_code'                  => $cart->attributes['product']['code'],
-            //                 'product_name'                  => $cart->attributes['product']['name'],
-            //                 'product_category'              => Category::whereId($cart->attributes['product']['category_id'])->value('name'),
-            //                 'product_unit_id'               => $cart->attributes['product_unit']['id'],
-            //                 'product_unit_sale_price'       => $cart->attributes['product_unit']['sale_price'],
-            //                 'product_unit_cost_price'       => $cart->attributes['product_unit']['cost_price'],
-            //                 'product_unit_stock_inventory'  => $cart->attributes['product_unit']['current_stock_inventory'],
-            //                 'product_unit_stock_shop'       => $cart->attributes['product_unit']['current_stock_shop'],
-            //                 'unit_id'                       => $cart->attributes['unit']['id'],
-            //                 'unit_name'                     => $cart->attributes['unit']['name'],
-            //                 'unit_value'                    => $cart->attributes['unit']['value'],
-            //                 'product_detail_id'             => $detail->id,
-            //                 'product_detail_sku'            => $detail->sku,
-            //                 'product_detail_barcode'        => $detail->barcode,
-            //                 'product_detail_type'           => $detail->type,
-            //                 'product_detail_expired_date'   => $detail->expired_date,
-            //                 'product_detail_quantity'       => $detail->quantity,
-            //                 'quantity_product'              => 1,
-            //             ];
-            //         }
-            //     }
-            // }
+                // Buat kunci unik berdasarkan ID produk dan ID addons
+                $uniqueKey = $productId . '-' . implode('-', $addonIds);
 
-            // // Save OrderDetail Product
-            // foreach ($orderDetails as $detail) {
-            //     $orderDetailProduct = new OrderDetailProducts();
-            //     $orderDetailProduct->order_id                       = $order->id;
-            //     $orderDetailProduct->product_id                     = $detail['product_id'];
-            //     $orderDetailProduct->product_code                   = $detail['product_code'];
-            //     $orderDetailProduct->product_name                   = $detail['product_name'];
-            //     $orderDetailProduct->product_category               = $detail['product_category'];
-            //     $orderDetailProduct->product_unit_id                = $detail['product_unit_id'];
-            //     $orderDetailProduct->product_unit_sale_price        = $detail['product_unit_sale_price'];
-            //     $orderDetailProduct->product_unit_cost_price        = $detail['product_unit_cost_price'];
-            //     $orderDetailProduct->product_unit_stock_inventory   = $detail['product_unit_stock_inventory'];
-            //     $orderDetailProduct->product_unit_stock_shop        = $detail['product_unit_stock_shop'];
-            //     $orderDetailProduct->unit_id                        = $detail['unit_id'];
-            //     $orderDetailProduct->unit_name                      = $detail['unit_name'];
-            //     $orderDetailProduct->unit_value                     = $detail['unit_value'];
-            //     $orderDetailProduct->product_detail_id              = $detail['product_detail_id'];
-            //     $orderDetailProduct->product_detail_sku             = $detail['product_detail_sku'];
-            //     $orderDetailProduct->product_detail_barcode         = $detail['product_detail_barcode'];
-            //     $orderDetailProduct->product_detail_type            = $detail['product_detail_type'];
-            //     $orderDetailProduct->product_detail_expired_date    = $detail['product_detail_expired_date'];
-            //     $orderDetailProduct->product_detail_quantity        = $detail['product_detail_quantity'];
-            //     $orderDetailProduct->quantity_product               = $detail['quantity_product'];
+                if (!isset($orderProducts[$uniqueKey])) {
+                    $orderProducts[$uniqueKey] = [
+                        'id'                => $productId,
+                        'name'              => $cart->attributes['product']['name'],
+                        'cost_price'        => $cart->attributes['product']['cost_price'],
+                        'selling_price'     => $cart->attributes['product']['selling_price'],
+                        'is_discount'       => $cart->attributes['product']['is_discount'],
+                        'percent_discount'  => $cart->attributes['product']['percent_discount'],
+                        'price_discount'    => $cart->attributes['product']['price_discount'],
+                        'qty'               => (int) $cart->quantity,
+                        'addons'            => $cart->attributes['addons'],
+                    ];
+                } else {
+                    $orderProducts[$uniqueKey]['qty'] += (int) $cart->quantity;
+                }
 
-            //     $productDetail = ProductDetail::findOrFail($detail['product_detail_id']);
+                // Perbarui total kuantitas produk untuk pengecekan stok
+                if (!isset($stockCheck[$productId])) {
+                    $stockCheck[$productId] = 0;
+                }
+                $stockCheck[$productId] += (int) $cart->quantity;
+            }
 
-            //     if ((int)$productDetail->quantity < (int)$detail['quantity_product']) {
-            //         return redirect()->back()->with(['failed' => 'Stock product kurang!']);
-            //     }
+            // Pengecekan stok sebelum menyimpan ke tabel order_products
+            foreach ($stockCheck as $productId => $totalQty) {
+                $product = Product::findOrFail($productId);
+                if ((int)$product->current_stock < $totalQty) {
+                    return redirect()->back()->with(['failed' => 'Stock product ' . $product->name . ' kurang - Stock tersisa ' . $product->current_stock]);
+                }
+            }
 
-            //     $currentQuantity = (int)$productDetail->quantity - (int)$detail['quantity_product'];
-            //     $productDetail->quantity = $currentQuantity;
-            //     $productDetail->status = ($currentQuantity > 0) ? $productDetail->status : 'sold';
-            //     $productDetail->save();
-            //     $orderDetailProduct->save();
-            // }
-            // ==================================================================================================
+            // Simpan produk dan addons ke tabel order_products
+            foreach ($orderProducts as $product) {
+                // Buat entri order_product
+                $orderProduct = OrderProduct::create([
+                    'order_id'          => $order->id,
+                    'name'              => $product['name'],
+                    'cost_price'        => $product['cost_price'],
+                    'selling_price'     => $product['selling_price'],
+                    'is_discount'       => $product['is_discount'],
+                    'percent_discount'  => $product['percent_discount'],
+                    'price_discount'    => $product['price_discount'],
+                    'qty'               => $product['qty'],
+                ]);
 
+                // Simpan addons terkait ke tabel order_product_addons
+                foreach ($product['addons'] as $addon) {
+                    $getAddon = Addon::findOrFail($addon['id']);
+                    OrderProductAddon::create([
+                        'order_product_id' => $orderProduct->id,
+                        'name'             => $getAddon->name,
+                        'price'            => $getAddon->price,
+                    ]);
+                }
 
+                $product = Product::findOrFail($product['id']);
+                // Kurangi stok produk
+                $product->current_stock -= $stockCheck[$product->id];
+                $product->save();
+            }
+
+            // Jika semua operasi berhasil, lakukan commit
+            DB::commit();
+
+            // Hapus sesi keranjang setelah berhasil menyimpan data pesanan
+            Cart::session(Auth::user()->id)->clear();
+
+            return redirect()->route('pos')->with('success', 'Order Telah berhasil');
         } catch (\Throwable $th) {
             //throw $th;
+            DB::rollBack();
+            return redirect()->back()->with('failed', $th->getMessage());
         }
+    }
+
+    private function generateInvoice()
+    {
+        // Ambil tanggal hari ini
+        $today = Carbon::today();
+        $formattedDate = $today->format('ymd'); // Format tanggal: yyMMdd
+
+        // Ambil order terakhir yang dibuat hari ini dan sudah dibayar
+        $lastOrder = Order::whereDate('created_at', $today)
+                          ->where('payment_status', 'Paid')
+                          ->orderBy('id', 'desc')
+                          ->first();
+
+        if ($lastOrder) {
+            // Cek apakah order dibuat pada tanggal yang sama dengan hari ini
+            $lastInvoiceNumber = $lastOrder->no_invoice;
+            // Ambil nomor order dari string no_invoice (sesuaikan dengan format substring jika diperlukan)
+            $lastOrderNumber = (int)substr($lastInvoiceNumber, 7);
+            $nextOrderNumber = $lastOrderNumber + 1;
+        } else {
+            $nextOrderNumber = 1;
+        }
+
+        // Tambahkan padding agar nomor order menjadi 3 digit
+        $paddedOrderNumber = str_pad($nextOrderNumber, 3, '0', STR_PAD_LEFT);
+        // Buat nomor invoice
+        $invoiceNumber = $formattedDate . '-' . $paddedOrderNumber;
+
+        return $invoiceNumber;
     }
 }

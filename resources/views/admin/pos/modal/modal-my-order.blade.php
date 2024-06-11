@@ -61,16 +61,17 @@
                                 <div class="list-group-item list-group-item-action" aria-current="true">
                                     <div class="d-flex w-100 justify-content-between">
                                         <div class="">
-                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">No Invoice:</span> {{ $order_paid->invoice_no ?? '-' }}</p>
-                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Cashier:</span> {{ $order_paid->user->name ?? '-' }}</p>
-                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Metode Pembayaran:</span> {{ $order_paid->metode_pembayaran ?? '-' }}</p>
-                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Total:</span> Rp.{{ number_format($order_paid->total_price, 0, ',', '.' ) ?? '-' }}</p>
+                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">No Invoice:</span> {{ $order_paid->no_invoice ?? '-' }}</p>
+                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Cashier:</span> {{ $order_paid->cashier_name ?? '-' }}</p>
+                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Metode Pembayaran:</span> {{ $order_paid->payment_method ?? '-' }}</p>
+                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Total:</span> Rp.{{ number_format($order_paid->total, 0, ',', '.' ) ?? '-' }}</p>
                                         </div>
                                         <div class="">
-                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Customer:</span> {{ $order_paid->customer->name ?? $order_paid->name }}</p>
+                                            <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Customer:</span> {{ $order_paid->customer_name ?? '-' }}</p>
                                             <p class="mb-1" style="font-size:14px;"><span class="fw-medium">Date:</span> {{ date('d-m-Y H:i', strtotime($order_paid->created_at)) }}</p>
                                             <div class="btn-group mt-2" role="group" aria-label="Basic example">
-                                                <a href="{{ route('kasir.dashboard-detail-kasir.show',$order_paid->id) }}" class="btn py-1 px-2 m-0 btn-warning" type="button">
+                                                {{-- <a href="{{ route('kasir.dashboard-detail-kasir.show',$order_paid->id) }}" class="btn py-1 px-2 m-0 btn-warning" type="button"> --}}
+                                                <a href="#!" class="btn py-1 px-2 m-0 btn-warning" type="button">
                                                     <small class="text-white">Print</small>
                                                 </a>
                                             </div>

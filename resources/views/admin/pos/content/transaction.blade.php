@@ -1,8 +1,10 @@
+
 <div class="tab-pane fade show active" id="pills-transaction" role="tabpanel" aria-labelledby="pills-transaction-tab" tabindex="0">
     <div class="wrapper">
-		<!--start page wrapper -->
+        <!--start page wrapper -->
 		<div class="page-wrapper m-0">
-			<div class="page-content">
+            <div class="page-content">
+                @include('admin.components.alert')
 				<div class="row">
 					<div class="col-12 col-md-6 mb-3">
                         <div class="card">

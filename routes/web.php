@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AddonController;
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\MaterialController;
@@ -103,6 +104,19 @@ Route::middleware(['auth'])->group(function () {
         Route::put('update/{customerId}', [CustomerController::class, 'update'])->name('update');
         Route::get('modal-delete/{customerId}', [CustomerController::class, 'getModalDelete'])->name('modal-delete');
         Route::delete('delete/{customerId}', [CustomerController::class, 'destroy'])->name('destroy');
+    });
+
+    // Attendance
+    Route::prefix('attendances')->name('attendances.')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
+        Route::get('get-data', [AttendanceController::class, 'getAttendances'])->name('get-data');
+        Route::get('modal-add', [AttendanceController::class, 'getModalAdd'])->name('modal-add');
+        Route::post('store', [AttendanceController::class, 'store'])->name('store');
+        Route::get('modal-edit/{attendanceId}', [AttendanceController::class, 'getModalEdit'])->name('modal-edit');
+        Route::put('update/{attendanceId}', [AttendanceController::class, 'update'])->name('update');
+        Route::get('modal-delete/{attendanceId}', [AttendanceController::class, 'getModalDelete'])->name('modal-delete');
+        Route::delete('delete/{attendanceId}', [AttendanceController::class, 'destroy'])->name('destroy');
+        Route::get('check-absensi', [AttendanceController::class, 'checkAbsensi'])->name('check');
     });
 
     // Product

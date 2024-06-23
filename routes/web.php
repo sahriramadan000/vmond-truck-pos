@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\MaterialController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OtherSettingController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ReportSalesGrossProfitController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\TagController;
@@ -129,6 +130,30 @@ Route::middleware(['auth'])->group(function () {
         Route::put('update/{productId}', [ProductController::class, 'update'])->name('update');
         Route::get('modal-delete/{productId}', [ProductController::class, 'getModalDelete'])->name('modal-delete');
         Route::delete('delete/{productId}', [ProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Report Sales Fross Profit
+    Route::prefix('report-gross')->name('report-gross.')->group(function () {
+        Route::get('/', [ReportSalesGrossProfitController::class, 'index'])->name('index');
+        Route::get('get-data', [ReportSalesGrossProfitController::class, 'getProducts'])->name('get-data');
+        Route::get('modal-add', [ReportSalesGrossProfitController::class, 'getModalAdd'])->name('modal-add');
+        Route::post('store', [ReportSalesGrossProfitController::class, 'store'])->name('store');
+        Route::get('modal-edit/{productId}', [ReportSalesGrossProfitController::class, 'getModalEdit'])->name('modal-edit');
+        Route::put('update/{productId}', [ReportSalesGrossProfitController::class, 'update'])->name('update');
+        Route::get('modal-delete/{productId}', [ReportSalesGrossProfitController::class, 'getModalDelete'])->name('modal-delete');
+        Route::delete('delete/{productId}', [ReportSalesGrossProfitController::class, 'destroy'])->name('destroy');
+    });
+
+    // Report Payment Method
+    Route::prefix('Payment-method')->name('Payment-method.')->group(function () {
+        Route::get('/', [ReportSalesGrossProfitController::class, 'paymentMethod'])->name('index');
+        Route::get('get-data', [ReportSalesGrossProfitController::class, 'getProducts'])->name('get-data');
+        Route::get('modal-add', [ReportSalesGrossProfitController::class, 'getModalAdd'])->name('modal-add');
+        Route::post('store', [ReportSalesGrossProfitController::class, 'store'])->name('store');
+        Route::get('modal-edit/{productId}', [ReportSalesGrossProfitController::class, 'getModalEdit'])->name('modal-edit');
+        Route::put('update/{productId}', [ReportSalesGrossProfitController::class, 'update'])->name('update');
+        Route::get('modal-delete/{productId}', [ReportSalesGrossProfitController::class, 'getModalDelete'])->name('modal-delete');
+        Route::delete('delete/{productId}', [ReportSalesGrossProfitController::class, 'destroy'])->name('destroy');
     });
 
     // Tag

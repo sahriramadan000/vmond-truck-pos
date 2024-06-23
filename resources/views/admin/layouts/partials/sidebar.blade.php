@@ -106,7 +106,7 @@
                         </a>
                         <ul class="collapse list-unstyled sub-submenu" id="sales" data-bs-parent="#pages">
                             <li>
-                                <a href="javascript:void(0);"> Gross Profit </a>
+                                <a href="{{ route('report-gross.index') }}"> Gross Profit </a>
                             </li>
                             <li>
                                 <a href="javascript:void(0);"> Payment Method </a>

@@ -40,7 +40,7 @@ function renderTags(tags) {
     const productContainer = $('#productContainer');
 
     productContainer.empty();
-    console.log(tags);
+    // console.log(tags);
     if (tags.length > 0) {
         $.each(tags, function(index, tag) {
             const tagDiv = $('<div class="col-12 col-md-3 text-center"></div>');

@@ -71,6 +71,30 @@
                         @endif
                     </div>
 
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="discount_threshold" class="text-white" style="opacity: .8;">Discount Threshold</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="group-rp">Rp</span>
+                            <input type="text" name="discount_threshold" id="discount_threshold" class="form-control form-control-sm" aria-label="Discount Threshold" placeholder="Ex:10.000" value="{{ $coupon->discount_threshold ?? old('discount_threshold') }}">
+                        </div>
+
+                        @if($errors->has('discount_threshold'))
+                            <p class="text-danger">{{ $errors->first('discount_threshold') }}</p>
+                        @endif
+                    </div>
+
+                    <div class="col-12 col-md-6 mb-3">
+                        <label for="max_discount_value" class="text-white" style="opacity: .8;">Max Discount Value</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="group-rp">Rp</span>
+                            <input type="text" name="max_discount_value" id="max_discount_value" class="form-control form-control-sm" aria-label="Max Discount Value" placeholder="Ex:10.000" value="{{ $coupon->max_discount_value ?? old('max_discount_value') }}">
+                        </div>
+
+                        @if($errors->has('max_discount_value'))
+                            <p class="text-danger">{{ $errors->first('max_discount_value') }}</p>
+                        @endif
+                    </div>
+
                     <div class="col-12 col-md-6">
                         <div class="form-group mb-3">
                             <label for="expired_at">Expired</label>

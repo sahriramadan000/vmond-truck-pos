@@ -29,6 +29,8 @@
                     <th>Type</th>
                     <th>Value</th>
                     <th>Minimum Cart</th>
+                    <th>Discount Treshold</th>
+                    <th>Max Discount Value</th>
                     <th>Expired</th>
                     <th>Limit</th>
                     <th>Usage</th>
@@ -87,6 +89,26 @@
                         }
                     }
                 },
+                {
+                    data: 'discount_threshold',
+                    render: function(data) {
+                        if (data) {
+                            return formatRupiah(data);
+                        } else {
+                            return '-';
+                        }
+                    }
+                },
+                {
+                    data: 'max_discount_value',
+                    render: function(data) {
+                        if (data) {
+                            return formatRupiah(data);
+                        } else {
+                            return '-';
+                        }
+                    }
+                },
                 {data: 'expired_at', name:'expired_at'},
                 {data: 'limit_usage', name:'limit_usage'},
                 {data: 'current_usage', name:'current_usage'},
@@ -137,6 +159,14 @@
                     $('#minimum_cart').on('keyup', function() {
                         handleInput('minimum_cart');
                     });
+
+                    $('#discount_threshold').on('keyup', function() {
+                        handleInput('discount_threshold');
+                    });
+
+                    $('#max_discount_value').on('keyup', function() {
+                        handleInput('max_discount_value');
+                    });
                 });
             });
         });
@@ -160,6 +190,16 @@
                     handleInput('minimum_cart');
                     $('#minimum_cart').on('keyup', function() {
                         handleInput('minimum_cart');
+                    });
+
+                    handleInput('discount_threshold');
+                    $('#discount_threshold').on('keyup', function() {
+                        handleInput('discount_threshold');
+                    });
+
+                    handleInput('max_discount_value');
+                    $('#max_discount_value').on('keyup', function() {
+                        handleInput('max_discount_value');
                     });
                 });
             });

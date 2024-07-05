@@ -22,14 +22,17 @@ use Illuminate\Support\Facades\Cache;
 class TransactionController extends Controller
 {
     public function index(){
-        $data['page_title'] = 'Transaction';
-        $data['products'] = Product::orderby('id', 'asc')->get();
-        $data ['other_setting'] = OtherSetting::get()->first();
-        $data['data_items'] = Cart::session(Auth::user()->id)->getContent();
+        $data['page_title']     = 'Transaction';
+        $data['data_items']     = Cart::session(Auth::user()->id)->getContent();
+        $data['products']       = Product::orderby('id', 'asc')->get();
+        $data['other_setting']  = OtherSetting::get()->first();
+        $service                = (int) str_replace('.', '', $data['other_setting']->layanan);
+        $subtotal               = Cart::getTotal();
 
-        $data['subtotal'] = (Cart::getTotal() ?? '0');
-        $data['tax'] = ((Cart::getTotal() ?? '0') * $data['other_setting']->pb01/100);
-        $data['total'] = (Cart::getTotal() ?? '0') + $data['tax'];
+        $data['service']  = $service;
+        $data['subtotal'] = $subtotal;
+        $data['tax']      = (($data['subtotal'] + ($data['data_items']->isEmpty() ? 0 : $service)) * $data['other_setting']->pb01/100);
+        $data['total']    = ($data['subtotal'] + ($data['data_items']->isEmpty() ? 0 : $service)) + $data['tax'];
 
         return view('admin.pos.index', $data);
     }
@@ -227,23 +230,24 @@ class TransactionController extends Controller
             } else {
                 // Jika item belum ada, tambahkan ke keranjang
                 Cart::session(Auth::user()->id)->add(array(
-                    'id' => $itemIdentifier,
-                    'name' => $product->name,
-                    'price' => $totalPrice,
-                    'quantity' => $request->quantity,
-                    'attributes' => $productDetailAttributes,
+                    'id'              => $itemIdentifier,
+                    'name'            => $product->name,
+                    'price'           => $totalPrice,
+                    'quantity'        => $request->quantity,
+                    'attributes'      => $productDetailAttributes,
                     'associatedModel' => Product::class
                 ));
             }
-
-            $other_setting = OtherSetting::select('pb01')->first();
-            $subtotal = (Cart::getTotal() ?? '0');
-            $tax = ((Cart::getTotal() ?? '0') * $other_setting->pb01 / 100);
-            $totalPayment = (Cart::getTotal() ?? '0') + $tax;
+            $other_setting = OtherSetting::select(['pb01', 'layanan'])->first();
+            $service       = (int) str_replace('.', '', $other_setting->layanan);
+            $subtotal      = (Cart::getTotal() ?? '0');
+            $tax           = (($subtotal + $service) * $other_setting->pb01 / 100);
+            $totalPayment  = ($subtotal + $service) + $tax;
 
             return response()->json([
                 'success'   => 'Product '.$product->name.' Berhasil masuk cart!',
                 'data'      => Cart::session(Auth::user()->id)->getContent()->toArray(),
+                'service'   => $service,
                 'tax'       => $tax,
                 'subtotal'  => $subtotal,
                 'total'     => $totalPayment,
@@ -270,30 +274,47 @@ class TransactionController extends Controller
     // Update Cart By Coupon
     public function updateCartByCoupon(Request $request)
     {
-        $coupon = Coupons::findOrFail($request->coupon_id);
-        $coupon_type = $coupon->type;
         Cart::session(Auth::user()->id)->getContent();
-        $tax = OtherSetting::get()->first();
+        $coupon         = Coupons::findOrFail($request->coupon_id);
+        $coupon_type    = $coupon->type;
+        $subtotal       = Cart::getTotal();
+        $other_setting  = OtherSetting::get()->first();
+        $service = (int) str_replace('.', '', $other_setting->layanan);
 
+        // Calculate discount amount based on coupon type
         if ($coupon_type == 'Percentage Discount') {
-            $coupon_amount = Cart::getTotal() * (int)$coupon->discount_value / 100;
+            $coupon_amount = $subtotal * $coupon->discount_value / 100;
+
+            // Apply max discount value if applicable
+            if ($subtotal >= $coupon->discount_threshold && $coupon_amount > $coupon->max_discount_value) {
+                $coupon_amount = $coupon->max_discount_value;
+            }
         } else {
             $coupon_amount = (int)$coupon->discount_value;
         }
 
-        $subtotal = Cart::getTotal();
-        $tax = ($subtotal - $coupon_amount) * $tax->pb01 / 100;
-        $total = ($subtotal - $coupon_amount) + $tax;
-        $info = $coupon->name;
+        // Check Layanan
+        if ($other_setting->layanan != 0) {
+            $biaya_layanan  = ($subtotal - $coupon_amount) + $service;
+            $temp_total     = $biaya_layanan;
+        }else{
+            $temp_total     = (($subtotal - $coupon_amount) ?? 0);
+        }
+
+        // Update tax & total price
+        $tax    = $temp_total * ($other_setting->pb01 / 100);
+        $total  = $temp_total +  ($tax);
+        $info   = $coupon->name;
 
         return response()->json([
-            'success'   => 'Coupon '.$coupon->name.' berhasil ditambahkan!',
-            'coupon_type'  => $coupon_type,
-            'coupon_amount'  => $coupon_amount,
-            'subtotal'  => $subtotal,
-            'tax'       => $tax,
-            'total'     => $total,
-            'info'     => $info,
+            'success'       => 'Coupon '.$coupon->name.' berhasil ditambahkan!',
+            'coupon_type'   => $coupon_type,
+            'coupon_amount' => $coupon_amount,
+            'subtotal'      => $subtotal,
+            'tax'           => $tax,
+            'total'         => $total,
+            'service'       => $service,
+            'info'          => $info,
         ], 200);
     }
 
@@ -303,32 +324,41 @@ class TransactionController extends Controller
     // Update Cart By Discount
     public function updateCartByDiscount(Request $request)
     {
-        $discount_price = (int) str_replace('.', '', $request->discount_price);
-        $discount_percent = (int) $request->discount_percent;
-        $discount_type = $request->discount_type;
-
         Cart::session(Auth::user()->id)->getContent();
-        $tax = OtherSetting::get()->first();
+        $other_setting      = OtherSetting::get()->first();
+        $discount_price     = (int) str_replace('.', '', $request->discount_price);
+        $discount_percent   = (int) $request->discount_percent;
+        $discount_type      = $request->discount_type;
+        $service            = (int) str_replace('.', '', $other_setting->layanan);
+        $subtotal           = Cart::getTotal();
 
         if ($discount_type == 'percent') {
-            $discount_amount = Cart::getTotal() * $discount_percent / 100;
+            $discount_amount = $subtotal * $discount_percent / 100;
         } else {
             $discount_amount = $discount_price;
         }
 
-        $subtotal = Cart::getTotal();
-        $tax = ($subtotal - $discount_amount) * $tax->pb01 / 100;
-        $total = ($subtotal - $discount_amount) + $tax;
+        // Check Layanan
+        if ($other_setting->layanan != 0) {
+            $biaya_layanan  = ($subtotal - $discount_amount) + $service;
+            $temp_total     = $biaya_layanan;
+        }else{
+            $temp_total     = (($subtotal - $discount_amount) ?? 0);
+        }
+
+        $tax    = $temp_total * ($other_setting->pb01 / 100);
+        $total  = $temp_total + $tax;
 
         return response()->json([
-            'success'   => 'Discount berhasil ditambahkan!',
-            'discount_price'  => $discount_price,
+            'success'           => 'Discount berhasil ditambahkan!',
+            'discount_price'    => $discount_price,
             'discount_percent'  => $discount_percent,
-            'discount_type'  => $discount_type,
-            'discount_amount'  => $discount_amount,
-            'subtotal'  => $subtotal,
-            'tax'       => $tax,
-            'total'     => $total,
+            'discount_type'     => $discount_type,
+            'discount_amount'   => $discount_amount,
+            'service'           => $service,
+            'subtotal'          => $subtotal,
+            'tax'               => $tax,
+            'total'             => $total,
         ], 200);
     }
 
@@ -402,16 +432,18 @@ class TransactionController extends Controller
                  CacheOnholdControl::where('key',$request->key)->delete();
 
                  // Set return data
-                 $dataCart = \Cart::session(Auth::user()->id)->getContent();
-                 $subtotal = \Cart::getTotal();
-                 $tax = $subtotal * $other_setting->pb01 / 100;
-                 $total_price = $subtotal  + $tax;
+                 $dataCart    = Cart::session(Auth::user()->id)->getContent();
+                 $service     = (int) str_replace('.', '', $other_setting->layanan);
+                 $subtotal    = Cart::getTotal();
+                 $tax         = ($subtotal + $service) * ($other_setting->pb01 / 100);
+                 $total_price = ($subtotal + $service)  + $tax;
 
 
                  return response()->json([
                      'code'     => 200,
                      'message'  => 'Open onhold Berhasil.',
                      'data'     => $dataCart,
+                     'service'  => $service,
                      'subtotal' => $subtotal,
                      'tax'      => $tax,
                      'total'    => $total_price,

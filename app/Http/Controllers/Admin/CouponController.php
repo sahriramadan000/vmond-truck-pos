@@ -67,14 +67,16 @@ class CouponController extends Controller
         $dataCoupon = $request->validated();
         try {
             $coupon = new Coupons();
-            $coupon->code             = $dataCoupon['code'];
-            $coupon->name             = $dataCoupon['name'];
-            $coupon->type             = $dataCoupon['type'];
-            $coupon->discount_value   = (int) str_replace('.', '', $dataCoupon['discount_value']);
-            $coupon->minimum_cart     = (int) str_replace('.', '', $dataCoupon['minimum_cart']);
-            $coupon->expired_at       = $dataCoupon['expired_at'];
-            $coupon->limit_usage      = $dataCoupon['limit_usage'];
-            $coupon->status           = $dataCoupon['status'];
+            $coupon->code               = $dataCoupon['code'];
+            $coupon->name               = $dataCoupon['name'];
+            $coupon->type               = $dataCoupon['type'];
+            $coupon->discount_value     = (int) str_replace('.', '', $dataCoupon['discount_value']);
+            $coupon->minimum_cart       = (int) str_replace('.', '', $dataCoupon['minimum_cart']);
+            $coupon->discount_threshold = isset($dataCoupon['discount_threshold']) ? (int)str_replace('.', '', $dataCoupon['discount_threshold']) : null;
+            $coupon->max_discount_value = isset($dataCoupon['max_discount_value']) ? (int)str_replace('.', '', $dataCoupon['max_discount_value']) : null;
+            $coupon->expired_at         = $dataCoupon['expired_at'];
+            $coupon->limit_usage        = $dataCoupon['limit_usage'];
+            $coupon->status             = $dataCoupon['status'];
 
             $coupon->save();
 
@@ -108,14 +110,16 @@ class CouponController extends Controller
                 return redirect()->back();
             }
 
-            $coupon->code             = $coupon->code;
-            $coupon->name             = $dataCoupon['name'];
-            $coupon->type             = $dataCoupon['type'];
-            $coupon->discount_value   = (int) str_replace('.', '', $dataCoupon['discount_value']);
-            $coupon->minimum_cart     = (int) str_replace('.', '', $dataCoupon['minimum_cart']);
-            $coupon->expired_at       = $dataCoupon['expired_at'];
-            $coupon->limit_usage      = $dataCoupon['limit_usage'];
-            $coupon->status           = $dataCoupon['status'];
+            $coupon->code               = $coupon->code;
+            $coupon->name               = $dataCoupon['name'];
+            $coupon->type               = $dataCoupon['type'];
+            $coupon->discount_value     = (int) str_replace('.', '', $dataCoupon['discount_value']);
+            $coupon->minimum_cart       = (int) str_replace('.', '', $dataCoupon['minimum_cart']);
+            $coupon->discount_threshold = isset($dataCoupon['discount_threshold']) ? (int)str_replace('.', '', $dataCoupon['discount_threshold']) : null;
+            $coupon->max_discount_value = isset($dataCoupon['max_discount_value']) ? (int)str_replace('.', '', $dataCoupon['max_discount_value']) : null;
+            $coupon->expired_at         = $dataCoupon['expired_at'];
+            $coupon->limit_usage        = $dataCoupon['limit_usage'];
+            $coupon->status             = $dataCoupon['status'];
 
             $coupon->save();
 

@@ -25,14 +25,16 @@ class AddCouponRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'           => 'required|string',
-            'code'           => 'required|unique:coupons,code',
-            'type'           => 'required|string',
-            'discount_value' => 'required|numeric',
-            'minimum_cart'   => 'nullable|numeric',
-            'expired_at'     => 'required|date',
-            'limit_usage'    => 'required|numeric|min:0',
-            'status'         => 'required',
+            'name'              => 'required|string',
+            'code'              => 'required|unique:coupons,code',
+            'type'              => 'required|string',
+            'discount_value'    => 'required|numeric',
+            'minimum_cart'      => 'nullable|numeric',
+            'discount_threshold'=> 'nullable|numeric|min:0',
+            'max_discount_value'=> 'nullable|numeric|min:0',
+            'expired_at'        => 'required|date',
+            'limit_usage'       => 'required|numeric|min:0',
+            'status'            => 'required',
         ];
     }
 

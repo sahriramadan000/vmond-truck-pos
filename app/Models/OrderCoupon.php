@@ -15,6 +15,8 @@ class OrderCoupon extends Model
         'code',
         'type',
         'discount_value',
+        'discount_threshold',
+        'max_discount_value',
     ];
 
     public function order()

@@ -105,7 +105,10 @@
                                                     </tr>
 
                                                     <tr>
-                                                        <td class="bg-light-info fw-medium" style="border-top: 1px solid #060818 !important; border-bottom: 1px solid #060818 !important;" colspan="3">
+                                                        <td style="border-top: 1px solid #060818 !important; border-bottom: 1px solid #060818 !important;">
+                                                            <span style="font-size: 12px;" class="text-white opacity-75 d-flex justify-content-between">Service: <small id="service-cart" style="font-size: 12px;">Rp.{{ number_format($service, 0, ',', '.') }}</small></span>
+                                                        </td>
+                                                        <td class="bg-light-info fw-medium" style="border-top: 1px solid #060818 !important; border-bottom: 1px solid #060818 !important; border-left: 1px solid #060818 !important;" colspan="2">
                                                             <div class="d-flex justify-content-between">
                                                                 <small class="text-white opacity-75">Total</small>
                                                                 <small id="total-cart" class="text-white opacity-75">Rp.{{ number_format($total, 0, ',', '.') }}</small>
@@ -184,12 +187,12 @@
                                 <div class="row">
                                     <div class="fm-search col-lg-12 px-4 mt-3">
                                         <div class="mb-0">
-                                            <div class="input-group">
-                                                <button class="btn btn-outline-info text-white d-flex align-items-center" type="button">Favorites</button>
-                                                <button class="btn btn-outline-info text-white d-flex align-items-center" type="button">All Menu</button>
+                                            <di v class="input-group">
+                                                {{-- <button class="btn btn-outline-info text-white d-flex align-items-center" type="button">Favorites</button>
+                                                <button class="btn btn-outline-info text-white d-flex align-items-center" type="button">All Menu</button> --}}
                                                 <input type="text" id="text-search" class="form-control barcode" placeholder="" disabled>
                                                 <button class="btn btn-primary text-white d-flex align-items-center" type="button" onclick="ModalSearch('{{ route('modal-search-product') }}', '{{ route('search-product') }}', '{{ csrf_token() }}')"><i class='bx bx-search-alt me-0' style="font-size: 1.2rem !important;"></i></button>
-                                            </div>
+                                            </di>
                                         </div>
                                     </div>
                                 </div>

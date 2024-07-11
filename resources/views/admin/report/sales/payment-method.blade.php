@@ -24,16 +24,9 @@
             <thead>
                 <tr>
                     <th width="7%">No</th>
-                    <th>Nama Kasir</th>
-                    <th>Nama Customer</th>
-                    <th>Menu</th>
-                    <th>Metode Pembayaran</th>
-                    <th>Sub Total</th>
-                    <th>Voucher</th>
-                    <th>Discount</th>
-                    <th>PB01</th>
-                    <th>Total</th>
-                    <th class="no-content" width="10%">Action</th>
+                    <th>Payment Metode</th>
+                    <th>Quantity Metode Pembayaran</th>
+                    <th>Total Price Collected</th>
                 </tr>
             </thead>
         </table>
@@ -69,7 +62,6 @@
                 {data: 'email', name:'email'},
                 {data: 'phone', name:'phone'},
                 {data: 'gender', name:'gender'},
-                {data: 'action', name:'action'},
             ],
             "dom": "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f<'toolbar align-self-center'>>>>" +
             "<'table-responsive'tr>" +
@@ -85,11 +77,6 @@
             "lengthMenu": [10, 20, 50],
             "pageLength": 10
         });
-
-        // $("div.toolbar").html('<button class="ms-2 btn btn-primary customers-add" type="button" data-bs-target="#tabs-add-customer">'+
-        //                         '<span>Create Customer</span>'+
-        //                         '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>'+
-        //                     '</button>');
 
         // Event create by Modal
         $(document).on('click', '.customers-add', function() {

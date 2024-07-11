@@ -98,7 +98,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled {{ (request()->routeIs('suppliers.index') || request()->routeIs('materials.index')) ? 'show' : '' }}" id="report" data-bs-parent="#accordionExample">
+                <ul class="collapse submenu list-unstyled {{ (request()->routeIs(['report.sales.report-gross', 'payment-method.index'])) ? 'show' : '' }}" id="report" data-bs-parent="#accordionExample">
                     <li>
                         <a href="#sales" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle collapsed">
                             Sales
@@ -106,10 +106,10 @@
                         </a>
                         <ul class="collapse list-unstyled sub-submenu" id="sales" data-bs-parent="#pages">
                             <li>
-                                <a href="{{ route('report-gross.index') }}"> Gross Profit </a>
+                                <a href="{{ route('report.sales.report-gross') }}"> Gross Profit </a>
                             </li>
                             <li>
-                                <a href="javascript:void(0);"> Payment Method </a>
+                                <a href="{{ route('payment-method.index') }}"> Payment Method </a>
                             </li>
                         </ul>
                     </li>

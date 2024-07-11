@@ -374,7 +374,7 @@ class TransactionController extends Controller
          try {
 
              // Get All Session Cart
-             $session_cart = \Cart::session(Auth::user()->id)->getContent()->toArray();
+             $session_cart = Cart::session(Auth::user()->id)->getContent()->toArray();
 
              // Create unique key
              $uniqueKey = uniqid();
@@ -389,7 +389,7 @@ class TransactionController extends Controller
 
              // Clear session cart
              if ($dataCache) {
-                 \Cart::session(Auth::user()->id)->clear();
+                 Cart::session(Auth::user()->id)->clear();
              }
 
              return response()->json([
@@ -408,7 +408,7 @@ class TransactionController extends Controller
          try {
              $other_setting = OtherSetting::get()->first();
 
-             \Cart::session(Auth::user()->id)->clear();
+             Cart::session(Auth::user()->id)->clear();
              $keyCache = 'onHoldCart:user:' . Auth::user()->id . ':' . $request->key;
 
              if (Cache::has($keyCache)) {
@@ -417,7 +417,7 @@ class TransactionController extends Controller
 
                  // Add data to cart
                  foreach ($getCache as $cache) {
-                     \Cart::session(Auth::user()->id)->add([
+                     Cart::session(Auth::user()->id)->add([
                          'id' => $cache['id'],
                          'name' => $cache['name'],
                          'price' => $cache['price'],

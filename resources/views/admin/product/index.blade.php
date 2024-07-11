@@ -63,9 +63,9 @@
         },
         columns: [
             {
-                    "data": 'DT_RowIndex',
-                    orderable: false,
-                    searchable: false
+                "data": 'DT_RowIndex',
+                orderable: false,
+                searchable: false
             },
             {data: 'code', name:'code'},
             {data: 'name', name:'name'},

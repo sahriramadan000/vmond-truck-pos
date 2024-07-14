@@ -133,14 +133,13 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Report Sales & Absensi
-    Route::prefix('report')->name('report.')->group(function () {
-        Route::prefix('sales')->name('sales.')->group(function () {
-            Route::get('gross', [ReportController::class, 'reportGross'])->name('report-gross');
-            Route::get('gross-data', [ReportController::class, 'getReportGross'])->name('get-report-gross');
+    Route::prefix('report-sales')->name('report.sales.')->group(function () {
+        Route::get('gross', [ReportController::class, 'reportGross'])->name('report-gross');
+        Route::get('gross-data', [ReportController::class, 'getReportGross'])->name('get-report-gross');
+        Route::get('gross/order-details/{id}', [ReportController::class, 'getOrderDetails'])->name('get-detail-gross');
 
-            Route::get('payment-method', [ReportController::class, 'paymentMethod'])->name('payment-method');
-            Route::get('payment-method-data', [ReportController::class, 'paymentMethod'])->name('get-payment-method');
-        });
+        Route::get('payment-method', [ReportController::class, 'paymentMethod'])->name('payment-method');
+        Route::get('payment-method-data', [ReportController::class, 'getPaymentMethodsReport'])->name('get-payment-method');
     });
 
     // Report Payment Method

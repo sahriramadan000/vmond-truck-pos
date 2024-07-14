@@ -24,16 +24,10 @@
             <thead>
                 <tr>
                     <th width="7%">No</th>
+                    <th width="15%">Datetime</th>
                     <th>Nama Kasir</th>
                     <th>Nama Customer</th>
-                    <th>Menu</th>
-                    <th>Metode Pembayaran</th>
-                    <th>Sub Total</th>
-                    <th>Type Discount</th>
-                    <th>Discount Price</th>
-                    <th>Discount Percent</th>
-                    <th>Service</th>
-                    <th>PB01</th>
+                    <th>Payment Method</th>
                     <th>Total</th>
                     <th class="no-content" width="10%">Action</th>
                 </tr>
@@ -42,13 +36,47 @@
     </div>
 </div>
 
-<div id="modalContainer"></div>
+<div id="modalContainer">
+    <!-- Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Detail Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Order details will be populated here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('js')
 <script>
     $(document).ready(function() {
-        // getData
+        // Function to format numbers to Rupiah
+        function formatRupiah(angka) {
+            var number_string = angka.toString(),
+                sisa = number_string.length % 3,
+                rupiah = number_string.substr(0, sisa),
+                ribuan = number_string.substr(sisa).match(/\d{3}/g);
+
+            if (ribuan) {
+                separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            return rupiah;
+        }
+
+        // Fetch and display data
         $('#report-gross-table').DataTable({
             processing: true,
             serverSide: true,
@@ -66,72 +94,39 @@
                     orderable: false,
                     searchable: false
                 },
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                    render: function(data, type, row) {
+                        var date = new Date(data);
+                        var day = ('0' + date.getDate()).slice(-2); // Add leading zero
+                        var month = ('0' + (date.getMonth() + 1)).slice(-2); // Months are zero-based
+                        var year = date.getFullYear();
+                        var hours = ('0' + date.getHours()).slice(-2); // Add leading zero
+                        var minutes = ('0' + date.getMinutes()).slice(-2); // Add leading zero
+                        var seconds = ('0' + date.getSeconds()).slice(-2); // Add leading zero
+                        return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+                    }
+                },
                 {data: 'cashier_name', name: 'cashier_name'},
                 {data: 'customer_name', name: 'customer_name'},
-                {data: 'order_products', name: 'order_products', orderable: false, searchable: false},
                 {data: 'payment_method', name: 'payment_method'},
-                {
-                    data: 'subtotal',
-                    render: function(data) {
-                        if (data) {
-                            return 'Rp. ' + formatRupiah(data);
-                        } else {
-                            return '-';
-                        }
-                    }
-                },
-                {data: 'type_discount', name: 'type_discount'},
-                {
-                    data: 'price_discount',
-                    render: function(data) {
-                        if (data) {
-                            return 'Rp. ' + formatRupiah(data);
-                        } else {
-                            return '-';
-                        }
-                    }
-                },
-                {
-                    data: 'percent_discount',
-                    render: function(data) {
-                        if (data) {
-                            return data + '%';
-                        } else {
-                            return '-';
-                        }
-                    }
-                },
-                {
-                    data: 'service',
-                    render: function(data) {
-                        if (data) {
-                            return 'Rp. ' + formatRupiah(data);
-                        } else {
-                            return '-';
-                        }
-                    }
-                },
-                {
-                    data: 'pb01',
-                    render: function(data) {
-                        if (data) {
-                            return 'Rp. ' + formatRupiah(data);
-                        } else {
-                            return '-';
-                        }
-                    }
-                },
                 {
                     data: 'total',
                     render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + formatRupiah(data);
-                            } else {
-                                return '-';
-                            }
+                        if (data) {
+                            return 'Rp. ' + formatRupiah(data);
+                        } else {
+                            return '-';
                         }
+                    }
                 },
-                {data: 'action', name: 'action', orderable: false, searchable: false},
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                }
             ],
             "dom": "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f<'toolbar align-self-center'>>>>" +
             "<'table-responsive'tr>" +
@@ -139,7 +134,7 @@
             "oLanguage": {
                 "oPaginate": {
                     "sPrevious": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',
-                    "sNext": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y1="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'
+                    "sNext": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'
                 },
                 "sInfo": "Showing page _PAGE_ of _PAGES_",
                 "sSearch": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
@@ -149,6 +144,22 @@
             "stripeClasses": [],
             "lengthMenu": [10, 20, 50],
             "pageLength": 10
+        });
+
+        // Event listener for opening modal
+        $('#report-gross-table').on('click', '.view-details', function() {
+            var orderId = $(this).data('id');
+            $.ajax({
+                url: '/report-sales/gross/order-details/' + orderId,
+                method: 'GET',
+                success: function(data) {
+                    $('#modalBody').html(data);
+                    $('#detailModal').modal('show');
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    alert('There was an error fetching the details. Please try again later.');
+                }
+            });
         });
     });
 </script>

@@ -20,7 +20,7 @@
 <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
     @include('admin.components.alert')
     <div class="widget-content widget-content-area br-8">
-        <table id="customers-table" class="table dt-table-hover" style="width:100%">
+        <table id="payment-method-table" class="table dt-table-hover" style="width:100%">
             <thead>
                 <tr>
                     <th width="7%">No</th>
@@ -40,11 +40,11 @@
 <script>
     $(document).ready(function() {
         // getData
-        $('#customers-table').DataTable({
+        $('#payment-method-table').DataTable({
             processing: true,
             serverSide:true,
             ajax: {
-            url: "{{ route('customers.get-data') }}",
+            url: "{{ route('report.sales.get-payment-method') }}",
                 error: function(xhr, textStatus, errorThrown) {
                     $('#customers-table').DataTable().clear().draw(); // Bersihkan tabel
                     console.log(xhr.responseText); // Tampilkan pesan kesalahan di konsol browser
@@ -52,16 +52,16 @@
                 }
             },
             columns: [
+                { data: 'DT_RowIndex', orderable: false, searchable: false },
+                { data: 'payment_method', name: 'payment_method' },
+                { data: 'quantity', name: 'quantity' },
                 {
-                        "data": 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                },
-                {data: 'code', name:'code'},
-                {data: 'name', name:'name'},
-                {data: 'email', name:'email'},
-                {data: 'phone', name:'phone'},
-                {data: 'gender', name:'gender'},
+                    data: 'total_collected',
+                    name: 'total_collected',
+                    render: function(data, type, row) {
+                        return 'Rp. ' + parseFloat(data).toLocaleString('id-ID');
+                    }
+                }
             ],
             "dom": "<'dt--top-section'<'row'<'col-12 col-sm-6 d-flex justify-content-sm-start justify-content-center'l><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f<'toolbar align-self-center'>>>>" +
             "<'table-responsive'tr>" +
@@ -76,40 +76,6 @@
             "stripeClasses": [],
             "lengthMenu": [10, 20, 50],
             "pageLength": 10
-        });
-
-        // Event create by Modal
-        $(document).on('click', '.customers-add', function() {
-            var getTarget = $(this).data('bs-target');
-
-            $.get("{{ route('customers.modal-add') }}", function(data) {
-                $('#modalContainer').html(data);
-                $(`${getTarget}`).modal('show');
-            });
-        });
-
-        // Event Edit by Modal
-        $(document).on('click', '.customers-edit-table', function() {
-            var customerId = $(this).data('bs-target');
-            var parts = customerId.split("-");
-            var id = parseInt(parts[1]);
-
-            $.get("{{ url('customers/modal-edit') }}/" + id, function(data) {
-                $('#modalContainer').html(data);
-                $(`${customerId}`).modal('show');
-            });
-        });
-
-        // Event Delete by Modal
-        $(document).on('click', '.customers-delete-table', function() {
-            var customerId = $(this).data('bs-target');
-            var parts = customerId.split("-");
-            var id = parseInt(parts[1]);
-
-            $.get("{{ url('customers/modal-delete') }}/" + id, function(data) {
-                $('#modalContainer').html(data);
-                $(`${customerId}`).modal('show');
-            });
         });
     });
 </script>

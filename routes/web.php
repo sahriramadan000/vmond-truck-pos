@@ -47,6 +47,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Users
     Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+        Route::put('update/profile', [UserController::class, 'profileUpdate'])->name('update.profile');
+
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('get-data', [UserController::class, 'getUsers'])->name('get-data');
         Route::get('modal-add', [UserController::class, 'getModalAdd'])->name('modal-add');

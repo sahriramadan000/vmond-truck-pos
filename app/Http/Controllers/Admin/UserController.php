@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\User\AddUserRequest;
+use App\Http\Requests\Admin\User\UpdateProfileUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\View;
 use Yajra\DataTables\Facades\DataTables;
@@ -172,5 +174,65 @@ class UserController extends Controller
         }
 
         return redirect(route('users.index'));
+    }
+
+    public function profile()
+    {
+        $data['page_title'] = 'User Profile';
+        $data['user']    = User::findOrFail(Auth::user()->id);
+        return view('admin.user.profile', $data);
+    }
+
+    public function profileUpdate(UpdateProfileUserRequest $request)
+    {
+        $dataUser   = $request->validated();
+        $userId     = Auth::user()->id;
+        try {
+            $user = User::find($userId);
+
+            // Check if user doesn't exists
+            if (!$user) {
+                $request->session()->flash('failed', "User not found!");
+                return redirect()->back();
+            }
+
+            $user->fullname = $dataUser['fullname'];
+            $user->username = $dataUser['username'];
+            $user->email    = $dataUser['email'];
+            $user->phone    = $dataUser['phone'];
+            $user->address  = $dataUser['address'];
+
+            // Check if old password matches
+            if ($dataUser['old_password'] && $dataUser['new_password']) {
+                if (Hash::check($dataUser['old_password'], $user->password)) {
+                    $user->password = bcrypt($dataUser['new_password']);
+                } else {
+                    // Old password doesn't match, handle the error
+                    $request->session()->flash('failed', "Old password doesn't match!");
+                    return redirect()->back();
+                }
+            }
+
+            if ($request->hasFile('avatar')) {
+                $image = $request->file('avatar');
+                $imageName = uniqid() . '' . time() . '.webp';
+
+                // Resize fit center and compres image
+                $resizedImage = Image::make($image)
+                ->fit(400, 400)
+                ->encode('webp', 80);
+
+                // Save iamge after resize, compres, and change format to webp format
+                $resizedImage->save(public_path('images/users/' . $imageName));
+                $user->avatar = $imageName;
+            }
+            $user->save();
+
+            $request->session()->flash('success', "Update profile user successfully!");
+            return redirect(route('users.profile'));
+        } catch (\Throwable $th) {
+            $request->session()->flash('failed', "Failed to update profile user!");
+            return redirect(route('users.profile'));
+        }
     }
 }

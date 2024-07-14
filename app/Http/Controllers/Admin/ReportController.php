@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
@@ -49,6 +51,42 @@ class ReportController extends Controller
 
             return DataTables::of($query)
                 ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
+    public function reportAbsensi(){
+        $data ['page_title'] = 'Report Absensi';
+        return view('admin.report.absensi.index',$data);
+    }
+
+    public function getAttendanceReport(Request $request)
+    {
+        if ($request->ajax()) {
+            // Check if the user is an admin
+            if (Auth::user()->hasAnyRole(['super-admin', 'admin'])) {
+                $query = Attendance::with('user:id,fullname') // Assuming you have a relationship defined in Attendance model for user
+                    ->select('attendances.id', 'user_id', 'check_in', 'check_out', 'date', 'status');
+            } else {
+                $query = Attendance::with('user:id,fullname')
+                    ->where('user_id', Auth::user()->id)
+                    ->select('attendances.id', 'user_id', 'check_in', 'check_out', 'date', 'status');
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('check_in', function($row) {
+                    return $row->check_in ? \Carbon\Carbon::parse($row->check_in)->format('H:i:s') : '-';
+                })
+                ->editColumn('check_out', function($row) {
+                    return $row->check_out ? \Carbon\Carbon::parse($row->check_out)->format('H:i:s') : '-';
+                })
+                ->editColumn('date', function($row) {
+                    return \Carbon\Carbon::parse($row->date)->format('d-m-Y');
+                })
+                ->addColumn('user_name', function($row) {
+                    return $row->user->fullname;
+                })
                 ->make(true);
         }
     }

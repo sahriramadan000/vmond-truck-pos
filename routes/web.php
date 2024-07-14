@@ -143,9 +143,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Report Payment Method
-    Route::prefix('Payment-method')->name('payment-method.')->group(function () {
+    Route::prefix('payment-method')->name('payment-method.')->group(function () {
         Route::get('/', [ReportController::class, 'paymentMethod'])->name('index');
         Route::get('get-data', [ReportController::class, 'getProducts'])->name('get-data');
+    });
+
+    // Report Payment Method
+    Route::prefix('report-absensi')->name('report-absensi.')->group(function () {
+        Route::get('/', [ReportController::class, 'reportAbsensi'])->name('index');
+        Route::get('get-data', [ReportController::class, 'getAttendanceReport'])->name('get-data');
     });
 
     // Tag
